@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+.pytest_cache/
+dist/
+*.py[cod]
+.soleresearch/
+exports/
+source-copies/
+source-cache/
+extraction-cache/
+transcripts/
+runs/*/transcripts/
+*.tmp
+*.sqlite3

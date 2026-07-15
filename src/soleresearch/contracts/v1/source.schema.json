@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soleresearch.local/schemas/v1/source.schema.json",
+  "title": "Soleresearch source record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source_id", "aliases", "citation_keys", "source_type", "title", "authors", "published", "identifiers", "canonical_url", "url_aliases", "content_hash", "source_version", "versions", "state", "human_reading_state", "quality", "retrieval", "local_copy_path", "metadata", "data_policy", "imported_at", "metadata_updated_at", "import_method", "import_provenance"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "source_id": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"},
+    "aliases": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "citation_keys": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "source_type": {"enum": ["url", "doi", "arxiv", "bibtex", "csl_json", "pdf", "markdown", "outline"]},
+    "title": {"type": "string"},
+    "authors": {"type": "array", "items": {"type": "string"}},
+    "published": {"type": ["string", "null"]},
+    "identifiers": {
+      "type": "object", "additionalProperties": false,
+      "required": ["doi", "doi_key", "doi_keys", "arxiv", "arxiv_base", "arxiv_bases", "arxiv_version"],
+      "properties": {
+        "doi": {"type": ["string", "null"]},
+        "doi_key": {"type": ["string", "null"]},
+        "doi_keys": {"type": "array", "items": {"type": "string"}},
+        "arxiv": {"type": ["string", "null"]},
+        "arxiv_base": {"type": ["string", "null"]},
+        "arxiv_bases": {"type": "array", "items": {"type": "string"}},
+        "arxiv_version": {"type": ["integer", "null"]}
+      }
+    },
+    "canonical_url": {"type": ["string", "null"]},
+    "url_aliases": {"type": "array", "items": {"type": "string"}},
+    "content_hash": {"type": ["string", "null"]},
+    "source_version": {"type": "string", "minLength": 1},
+    "versions": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["content_hash", "source_version", "retrieved_at", "extraction_engine", "http_charset", "extraction_hash"],
+        "properties": {
+          "content_hash": {"type": "string", "minLength": 1},
+          "source_version": {"type": "string", "minLength": 1},
+          "retrieved_at": {"type": "string", "format": "date-time"},
+          "extraction_engine": {
+            "type": "object", "additionalProperties": false,
+            "required": ["name", "version", "config"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "version": {"type": "string", "minLength": 1},
+              "config": {"type": "object"}
+            }
+          },
+          "http_charset": {"type": ["string", "null"]}
+          ,"extraction_hash": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "state": {"enum": ["discovered", "metadata_resolved", "content_inspected", "local_copy_retained"]},
+    "human_reading_state": {"enum": ["unread", "queued", "reading", "read", "skipped"]},
+    "quality": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authority", "methodology_transparency", "evidence_directness", "relevance", "publication_status", "notes"],
+      "properties": {
+        "authority": {"enum": ["unknown", "low", "medium", "high", "not_applicable"]},
+        "methodology_transparency": {"enum": ["unknown", "low", "medium", "high", "not_applicable"]},
+        "evidence_directness": {"enum": ["unknown", "low", "medium", "high", "not_applicable"]},
+        "relevance": {"enum": ["unknown", "low", "medium", "high", "not_applicable"]},
+        "publication_status": {"enum": ["unknown", "preprint", "peer_reviewed", "institutional", "commercial", "informal", "not_applicable"]},
+        "notes": {"type": "string"}
+      }
+    },
+    "retrieval": {
+      "type": "object", "additionalProperties": false,
+      "required": ["retrieved_at", "final_url", "http_status", "content_type", "charset", "content_bytes"],
+      "properties": {
+        "retrieved_at": {"type": ["string", "null"]},
+        "final_url": {"type": ["string", "null"]},
+        "http_status": {"type": ["integer", "null"]},
+        "content_type": {"type": ["string", "null"]},
+        "charset": {"type": ["string", "null"]},
+        "content_bytes": {"type": ["integer", "null"]}
+      }
+    },
+    "local_copy_path": {"type": ["string", "null"]},
+    "metadata": {"type": "object"},
+    "data_policy": {"enum": ["public_only", "local_private"]},
+    "imported_at": {"type": "string", "format": "date-time"},
+    "metadata_updated_at": {"type": "string", "format": "date-time"},
+    "import_method": {"type": "string", "minLength": 1}
+    ,"import_provenance": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["imported_at", "import_method", "source_type", "data_policy"],
+        "properties": {
+          "imported_at": {"type": "string", "format": "date-time"},
+          "import_method": {"type": "string", "minLength": 1},
+          "source_type": {"type": "string", "minLength": 1},
+          "data_policy": {"enum": ["public_only", "local_private"]}
+        }
+      }
+    }
+  }
+}

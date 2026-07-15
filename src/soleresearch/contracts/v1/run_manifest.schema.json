@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://soleresearch.local/schemas/v1/run_manifest.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "run_id", "project_id", "controller", "created_at", "base_revision", "config", "git"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1}, "run_id": {"type": "string", "pattern": "^run_[0-9a-f]{32}$"},
+    "project_id": {"type": "string", "minLength": 1}, "controller": {"type": "string", "enum": ["human", "sol"]},
+    "created_at": {"type": "string", "format": "date-time"}, "base_revision": {"type": "integer", "minimum": 0},
+    "config": {"type": "object", "additionalProperties": false, "required": ["cycles", "tasks", "deep_sources", "agents", "max_depth", "minutes", "provider_usage"], "properties": {
+      "cycles": {"type": "integer", "minimum": 1}, "tasks": {"type": "integer", "minimum": 1}, "deep_sources": {"type": "integer", "minimum": 1},
+      "agents": {"type": "integer", "minimum": 1}, "max_depth": {"type": "integer", "minimum": 0}, "minutes": {"type": "number", "minimum": 0},
+      "provider_usage": {"type": "object", "additionalProperties": false, "required": ["unit", "ceiling"], "properties": {"unit": {"type": "string", "enum": ["dollars", "tokens", "credits", "rate_limit"]}, "ceiling": {"type": "number", "minimum": 0}}}
+    }},
+    "git": {"type": "object", "additionalProperties": false, "required": ["enabled", "repository", "baseline_revision", "branch", "worktree", "baseline_dirty"], "properties": {
+      "enabled": {"type": "boolean"}, "repository": {"type": ["string", "null"]}, "baseline_revision": {"type": ["string", "null"]},
+      "branch": {"type": ["string", "null"]}, "worktree": {"type": ["string", "null"]}, "baseline_dirty": {"type": ["string", "null"]}
+    }}
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Soleresearch harness-neutral tool catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "catalog_version", "namespace", "executable", "tools"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "catalog_version": {"type": "integer", "const": 1},
+    "namespace": {"type": "string", "const": "soleresearch"},
+    "executable": {"type": "string", "const": "sole-research"},
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "command", "summary", "authority", "inputs", "output", "side_effects", "limits", "failure_modes"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]+$"},
+          "command": {"type": "string", "minLength": 1},
+          "summary": {"type": "string", "minLength": 1},
+          "authority": {"enum": ["none", "project_writer", "controller", "run_controller", "human_controller", "action_dependent"]},
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "required", "type", "secret"],
+              "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "required": {"type": "boolean"},
+                "type": {"enum": ["path", "string", "integer", "number", "boolean", "json", "enum", "repeatable_string"]},
+                "secret": {"type": "boolean"}
+              }
+            }
+          },
+          "output": {"type": "string", "minLength": 1},
+          "side_effects": {"type": "array", "items": {"type": "string"}},
+          "limits": {"type": "array", "items": {"type": "string"}},
+          "failure_modes": {"type": "array", "items": {"type": "string"}}
+          ,"authority_modes": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["condition", "authority"],
+              "properties": {
+                "condition": {"type": "string", "minLength": 1},
+                "authority": {"enum": ["none", "human_controller"]}
+              }
+            }
+          }
+          ,"actions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "authority", "inputs", "output", "side_effects", "failure_modes", "argv", "parser_signature", "constraints"],
+              "properties": {
+                "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+                "authority": {"enum": ["none", "project_writer", "controller", "run_controller", "human_controller"]},
+                "inputs": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["name", "required", "type", "secret", "positional", "repeatable", "choices", "default", "option_strings"],
+                    "properties": {
+                      "name": {"type": "string", "minLength": 1},
+                      "required": {"type": "boolean"},
+                      "type": {"enum": ["path", "string", "integer", "number", "boolean", "json", "enum", "repeatable_string"]},
+                      "secret": {"type": "boolean"},
+                      "positional": {"type": "boolean"},
+                      "repeatable": {"type": "boolean"},
+                      "choices": {"type": "array", "items": {"type": "string"}},
+                      "default": {"type": ["string", "integer", "number", "boolean", "array", "null"]},
+                      "option_strings": {"type": "array", "items": {"type": "string"}}
+                    }
+                  }
+                },
+                "output": {"type": "string", "minLength": 1},
+                "side_effects": {"type": "array", "items": {"type": "string"}},
+                "failure_modes": {"type": "array", "items": {"type": "string"}},
+                "argv": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+                ,"parser_signature": {"type": "array", "items": {"type": "string", "minLength": 1}}
+                ,"constraints": {"type": "array", "items": {"type": "string", "minLength": 1}}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

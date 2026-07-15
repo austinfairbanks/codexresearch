@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://soleresearch.local/schemas/v1/run_gate.schema.json",
+  "type": "object", "additionalProperties": false, "required": ["schema_version", "run_id", "status", "controller", "pending_decisions", "updated_at"],
+  "properties": {"schema_version": {"type": "integer", "const": 1}, "run_id": {"type": "string", "pattern": "^run_[0-9a-f]{32}$"}, "status": {"type": "string", "enum": ["clean", "busy", "human_review", "paused", "finished"]}, "controller": {"type": "string", "enum": ["human", "sol"]}, "pending_decisions": {"type": "array", "items": {"type": "object"}}, "updated_at": {"type": "string", "format": "date-time"}}
+}

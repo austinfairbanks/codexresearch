@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soleresearch.local/schemas/v2/outline_meta.schema.json",
+  "title": "Soleresearch strict graph outline projection metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "graph_contract", "revision", "graph_revision", "graph_hash", "outline_hash", "base_outline_hash", "mappings"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 2},
+    "graph_contract": {"enum": ["strict_v1", "legacy_untyped"]},
+    "revision": {"type": "integer", "minimum": 0},
+    "graph_revision": {"type": "integer", "minimum": 0},
+    "graph_hash": {"type": "string", "minLength": 1},
+    "outline_hash": {"type": "string", "minLength": 1},
+    "base_outline_hash": {"type": "string", "minLength": 1},
+    "mappings": {"type": "object"}
+  }
+}

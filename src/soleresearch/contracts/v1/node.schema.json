@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soleresearch.local/schemas/v1/node.schema.json",
+  "title": "Soleresearch graph node",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "node_id", "node_type", "title", "body", "tags", "maturity", "prior_maturity", "authority", "parent_id", "position", "evidence_ids", "retired", "created_at", "updated_at"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "node_id": {"type": "string", "pattern": "^nod_[0-9a-f]{32}$"},
+    "node_type": {"enum": ["question", "concept", "evidence", "interpretation", "conclusion", "gap", "outline"]},
+    "title": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"},
+    "body": {"type": "string"},
+    "tags": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "maturity": {"enum": ["exploratory", "developing", "supported", "contested", "gap", "retired"]},
+    "prior_maturity": {"type": ["string", "null"], "enum": ["exploratory", "developing", "supported", "contested", "gap", null]},
+    "authority": {"enum": ["proposed", "agent_accepted", "human_accepted", "rejected", "stale"]},
+    "parent_id": {"type": ["string", "null"]},
+    "position": {"type": "integer", "minimum": 0},
+    "evidence_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "retired": {"type": "boolean"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"}
+  }
+}

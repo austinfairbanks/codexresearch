@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://soleresearch.local/schemas/v1/worker.schema.json",
+  "type": "object", "additionalProperties": false, "required": ["schema_version", "run_id", "worker_id", "role", "depth", "parent_task_id", "capabilities", "created_at"],
+  "properties": {"schema_version": {"type": "integer", "const": 1}, "run_id": {"type": "string", "pattern": "^run_[0-9a-f]{32}$"}, "worker_id": {"type": "string", "pattern": "^wrk_[0-9a-f]{32}$"}, "role": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"}, "depth": {"type": "integer", "minimum": 0}, "parent_task_id": {"type": ["string", "null"], "pattern": "^tsk_[0-9a-f]{32}$"}, "capabilities": {"type": "array", "items": {"type": "string"}}, "created_at": {"type": "string", "format": "date-time"}}
+}

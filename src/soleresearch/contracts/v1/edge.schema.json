@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soleresearch.local/schemas/v1/edge.schema.json",
+  "title": "Soleresearch typed graph edge",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "edge_id", "edge_type", "source_node_id", "target_node_id", "evidence_ids", "authority", "retired", "created_at", "updated_at"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "edge_id": {"type": "string", "pattern": "^edg_[0-9a-f]{32}$"},
+    "edge_type": {"enum": ["supports", "contradicts", "qualifies", "relates_to", "answers", "contains", "depends_on"]},
+    "source_node_id": {"type": "string", "minLength": 1},
+    "target_node_id": {"type": "string", "minLength": 1},
+    "evidence_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "authority": {"enum": ["proposed", "agent_accepted", "human_accepted", "rejected", "stale"]},
+    "retired": {"type": "boolean"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"}
+  }
+}

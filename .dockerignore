@@ -1,0 +1,11 @@
+.git
+.venv
+.pytest_cache
+__pycache__
+.soleresearch
+exports
+source-copies
+source-cache
+extraction-cache
+transcripts
+*.pyc

@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://soleresearch.local/schemas/v1/run_event.schema.json",
+  "type": "object", "additionalProperties": false, "required": ["schema_version", "event_id", "run_id", "sequence", "event_type", "actor", "reason", "data", "created_at"],
+  "properties": {"schema_version": {"type": "integer", "const": 1}, "event_id": {"type": "string", "pattern": "^evt_[0-9a-f]{32}$"}, "run_id": {"type": "string", "pattern": "^run_[0-9a-f]{32}$"}, "sequence": {"type": "integer", "minimum": 1}, "event_type": {"type": "string", "minLength": 1}, "actor": {"type": "string", "minLength": 1}, "reason": {"type": ["string", "null"]}, "data": {"type": "object"}, "created_at": {"type": "string", "format": "date-time"}}
+}

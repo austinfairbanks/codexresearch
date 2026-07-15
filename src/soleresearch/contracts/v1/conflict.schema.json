@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soleresearch.local/schemas/v1/conflict.schema.json",
+  "title": "Soleresearch visible reconciliation conflict",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "conflict_id", "fingerprint", "conflict_type", "node_id", "anchor", "details", "status", "resolution", "created_at", "resolved_at", "resolution_actor", "resolution_revision"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "conflict_id": {"type": "string", "pattern": "^cnf_[0-9a-f]{32}$"},
+    "fingerprint": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "conflict_type": {"enum": ["orphan_anchor", "duplicate_anchor", "missing_anchor", "identity_conflict", "concurrent_edit"]},
+    "node_id": {"type": ["string", "null"]},
+    "anchor": {"type": ["string", "null"]},
+    "details": {"type": "string", "minLength": 1},
+    "status": {"enum": ["queued", "resolved", "superseded"]},
+    "resolution": {"type": ["string", "null"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "resolved_at": {"type": ["string", "null"]},
+    "resolution_actor": {"type": ["string", "null"]},
+    "resolution_revision": {"type": ["integer", "null"]}
+  }
+}

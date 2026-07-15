@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soleresearch.local/schemas/v1/graph_diff.schema.json",
+  "title": "Soleresearch reviewable graph diff",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "diff_id", "base_revision", "status", "actor_type", "actor_id", "operations", "created_at", "applied_revision", "applied_by", "applied_authority", "status_reason"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "diff_id": {"type": "string", "pattern": "^dif_[0-9a-f]{32}$"},
+    "base_revision": {"type": "integer", "minimum": 0},
+    "status": {"enum": ["proposed", "applied", "stale", "rejected"]},
+    "actor_type": {"enum": ["human", "agent", "orchestrator"]},
+    "actor_id": {"type": "string", "minLength": 1},
+    "operations": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "applied_revision": {"type": ["integer", "null"]},
+    "applied_by": {"type": ["string", "null"]},
+    "applied_authority": {"type": ["string", "null"], "enum": ["agent_accepted", "human_accepted", null]},
+    "status_reason": {"type": ["string", "null"]}
+  }
+}

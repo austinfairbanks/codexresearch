@@ -1,0 +1,5 @@
+# Generated research state, exports, and external controller capabilities.
+demo-output/
+generated*/
+project/
+controller-config/

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prepare Zotero Bundle"
+  short_description: "Prepare reviewed citation import bundles"
+  default_prompt: "Use $prepare-zotero-bundle to prepare a reviewed Zotero import bundle from this Soleresearch project."

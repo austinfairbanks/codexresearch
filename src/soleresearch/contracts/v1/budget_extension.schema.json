@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://soleresearch.local/schemas/v1/budget_extension.schema.json",
+  "type": "object", "additionalProperties": false, "required": ["schema_version", "extension_id", "run_id", "actor", "reason", "delta", "created_at"],
+  "properties": {"schema_version": {"type": "integer", "const": 1}, "extension_id": {"type": "string", "pattern": "^ext_[0-9a-f]{32}$"}, "run_id": {"type": "string", "pattern": "^run_[0-9a-f]{32}$"}, "actor": {"type": "string", "enum": ["human", "sol"]}, "reason": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"}, "delta": {"type": "object", "additionalProperties": false, "properties": {"cycles": {"type": "integer", "minimum": 1}, "tasks": {"type": "integer", "minimum": 1}, "deep_sources": {"type": "integer", "minimum": 1}, "minutes": {"type": "number", "minimum": 0}, "provider_usage": {"type": "number", "minimum": 0}}}, "created_at": {"type": "string", "format": "date-time"}}
+}

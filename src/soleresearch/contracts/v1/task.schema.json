@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soleresearch.local/schemas/v1/task.schema.json",
+  "title": "Soleresearch worker task packet",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "task_id", "parent_task_id", "requeue_of_task_id", "worker_id", "role", "depth", "base_revision", "cycle", "subquestion", "evidence_strategy", "allowed_capabilities", "allowed_domains", "artifact_references", "selected_context", "inherited_remaining_budget", "reservation", "required_result_operations", "created_at"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "run_id": {"type": "string", "pattern": "^run_[0-9a-f]{32}$"},
+    "task_id": {"type": "string", "pattern": "^tsk_[0-9a-f]{32}$"},
+    "parent_task_id": {"type": ["string", "null"], "pattern": "^tsk_[0-9a-f]{32}$"},
+    "requeue_of_task_id": {"type": ["string", "null"], "pattern": "^tsk_[0-9a-f]{32}$"},
+    "worker_id": {"type": "string", "pattern": "^wrk_[0-9a-f]{32}$"},
+    "role": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"},
+    "depth": {"type": "integer", "minimum": 0},
+    "base_revision": {"type": "integer", "minimum": 0},
+    "cycle": {"type": "integer", "minimum": 1},
+    "subquestion": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"},
+    "evidence_strategy": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"},
+    "allowed_capabilities": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "allowed_domains": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "artifact_references": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "selected_context": {"type": "object"},
+    "inherited_remaining_budget": {"type": "object"},
+    "reservation": {"type": "object", "additionalProperties": false, "required": ["deep_sources", "provider_usage", "lease_expires_at"], "properties": {"deep_sources": {"type": "integer", "minimum": 0}, "provider_usage": {"type": "number", "minimum": 0}, "lease_expires_at": {"type": "string", "format": "date-time"}}},
+    "required_result_operations": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}

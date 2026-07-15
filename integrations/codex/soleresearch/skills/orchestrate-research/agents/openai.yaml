@@ -1,0 +1,4 @@
+interface:
+  display_name: "Orchestrate Research"
+  short_description: "Guide bounded evidence-first research work"
+  default_prompt: "Use $orchestrate-research to initialize and guide a bounded evidence-first research project."

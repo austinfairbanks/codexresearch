@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://soleresearch.local/schemas/v1/run_budget.schema.json",
+  "type": "object", "additionalProperties": false, "required": ["schema_version", "run_id", "limits", "consumed", "deep_source_ids", "accounted_result_ids", "active_since", "elapsed_seconds", "updated_at"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1}, "run_id": {"type": "string", "pattern": "^run_[0-9a-f]{32}$"},
+    "limits": {"type": "object", "additionalProperties": false, "required": ["cycles", "tasks", "deep_sources", "agents", "max_depth", "minutes", "provider_usage"], "properties": {
+      "cycles": {"type": "integer", "minimum": 1}, "tasks": {"type": "integer", "minimum": 1}, "deep_sources": {"type": "integer", "minimum": 1}, "agents": {"type": "integer", "minimum": 1}, "max_depth": {"type": "integer", "minimum": 0}, "minutes": {"type": "number", "minimum": 0},
+      "provider_usage": {"type": "object", "additionalProperties": false, "required": ["unit", "ceiling"], "properties": {"unit": {"type": "string", "enum": ["dollars", "tokens", "credits", "rate_limit"]}, "ceiling": {"type": "number", "minimum": 0}}}
+    }},
+    "consumed": {"type": "object", "additionalProperties": false, "required": ["cycles", "tasks", "deep_sources", "provider_usage"], "properties": {"cycles": {"type": "integer", "minimum": 0}, "tasks": {"type": "integer", "minimum": 0}, "deep_sources": {"type": "integer", "minimum": 0}, "provider_usage": {"type": "number", "minimum": 0}}},
+    "deep_source_ids": {"type": "array", "items": {"type": "string"}}, "accounted_result_ids": {"type": "array", "items": {"type": "string"}}, "active_since": {"type": ["string", "null"], "format": "date-time"}, "elapsed_seconds": {"type": "number", "minimum": 0}, "updated_at": {"type": "string", "format": "date-time"}
+  }
+}

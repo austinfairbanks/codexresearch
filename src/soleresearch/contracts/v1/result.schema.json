@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soleresearch.local/schemas/v1/result.schema.json",
+  "title": "Soleresearch worker result packet",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "task_id", "worker_id", "base_revision", "used_capabilities", "used_artifact_references", "accessed_sources", "evidence", "proposed_graph_operations", "outline_suggestions", "disagreements", "gaps", "rationale", "usage", "completed_operations", "errors", "completed_at"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "run_id": {"type": "string", "pattern": "^run_[0-9a-f]{32}$"},
+    "task_id": {"type": "string", "pattern": "^tsk_[0-9a-f]{32}$"},
+    "worker_id": {"type": "string", "pattern": "^wrk_[0-9a-f]{32}$"},
+    "base_revision": {"type": "integer", "minimum": 0},
+    "used_capabilities": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "used_artifact_references": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "accessed_sources": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["source_id", "source_hash", "source_version", "deeply_processed", "access_method", "access_url"], "properties": {"source_id": {"type": "string", "minLength": 1}, "source_hash": {"type": ["string", "null"]}, "source_version": {"type": ["string", "null"]}, "deeply_processed": {"type": "boolean"}, "access_method": {"type": "string", "minLength": 1}, "access_url": {"type": ["string", "null"]}}}},
+    "evidence": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["evidence_id", "source_id", "source_hash", "source_version", "locator", "excerpt", "paraphrase", "stance"], "properties": {"evidence_id": {"type": "string", "pattern": "^ev_[0-9a-f]{24}$"}, "source_id": {"type": "string", "minLength": 1}, "source_hash": {"type": "string", "minLength": 1}, "source_version": {"type": "string", "minLength": 1}, "locator": {"type": "object"}, "excerpt": {"type": "string", "minLength": 1}, "paraphrase": {"type": "string", "minLength": 1}, "stance": {"type": "string", "enum": ["supports", "contradicts", "qualifies", "context", "uncertain"]}}}},
+    "proposed_graph_operations": {"type": "array", "items": {"$ref": "#/$defs/graphOperation"}},
+    "outline_suggestions": {"type": "array", "items": {"type": "object"}},
+    "disagreements": {"type": "array", "items": {"type": "object"}},
+    "gaps": {"type": "array", "items": {"type": "object"}},
+    "rationale": {"type": "string"},
+    "usage": {"type": "object", "additionalProperties": false, "required": ["unit", "amount"], "properties": {"unit": {"type": "string", "enum": ["dollars", "tokens", "credits", "rate_limit"]}, "amount": {"type": "number", "minimum": 0}}},
+    "completed_operations": {"type": "array", "uniqueItems": true, "items": {"type": "string", "enum": ["propose_graph_diff", "exact_locator_evidence", "source_provenance", "outline_suggestions", "disagreements", "gaps"]}},
+    "errors": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["code", "message"], "properties": {"code": {"type": "string", "minLength": 1}, "message": {"type": "string", "minLength": 1}}}},
+    "completed_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "operationId": {"type": "string", "pattern": "^op_[0-9a-f]{32}$"},
+    "nodeId": {"type": "string", "pattern": "^nod_[0-9a-f]{32}$"},
+    "edgeId": {"type": "string", "pattern": "^edg_[0-9a-f]{32}$"},
+    "partialNodeRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_type", "title"],
+      "properties": {
+        "node_type": {"enum": ["question", "concept", "evidence", "interpretation", "conclusion", "gap", "outline"]},
+        "title": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"},
+        "body": {"type": "string"},
+        "tags": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "maturity": {"enum": ["exploratory", "developing", "supported", "contested", "gap", "retired"]},
+        "authority": {"enum": ["proposed", "agent_accepted", "human_accepted", "rejected", "stale"]},
+        "parent_id": {"anyOf": [{"$ref": "#/$defs/nodeId"}, {"type": "null"}]},
+        "position": {"type": "integer", "minimum": 0},
+        "evidence_ids": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "fullNodeRecord": {"$ref": "node.schema.json"},
+    "partialEdgeRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["edge_type", "source_node_id", "target_node_id"],
+      "properties": {
+        "edge_type": {"enum": ["supports", "contradicts", "qualifies", "relates_to", "answers", "contains", "depends_on"]},
+        "source_node_id": {"$ref": "#/$defs/nodeId"},
+        "target_node_id": {"$ref": "#/$defs/nodeId"},
+        "evidence_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "authority": {"enum": ["proposed", "agent_accepted", "human_accepted", "rejected", "stale"]}
+      }
+    },
+    "fullEdgeRecord": {"$ref": "edge.schema.json"},
+    "nodeChanges": {
+      "type": "object", "additionalProperties": false, "minProperties": 1,
+      "properties": {
+        "title": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"}, "body": {"type": "string"},
+        "tags": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "maturity": {"enum": ["exploratory", "developing", "supported", "contested", "gap", "retired"]},
+        "authority": {"enum": ["proposed", "agent_accepted", "human_accepted", "rejected", "stale"]},
+        "evidence_ids": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "edgeChanges": {
+      "type": "object", "additionalProperties": false, "minProperties": 1,
+      "properties": {
+        "edge_type": {"enum": ["supports", "contradicts", "qualifies", "relates_to", "answers", "contains", "depends_on"]},
+        "source_node_id": {"$ref": "#/$defs/nodeId"}, "target_node_id": {"$ref": "#/$defs/nodeId"},
+        "evidence_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "authority": {"enum": ["proposed", "agent_accepted", "human_accepted", "rejected", "stale"]}
+      }
+    },
+    "graphOperation": {
+      "oneOf": [
+        {"type": "object", "additionalProperties": false, "required": ["op", "target", "record"], "properties": {"operation_id": {"$ref": "#/$defs/operationId"}, "op": {"const": "add"}, "target": {"const": "node"}, "record": {"oneOf": [{"$ref": "#/$defs/partialNodeRecord"}, {"$ref": "#/$defs/fullNodeRecord"}]}}},
+        {"type": "object", "additionalProperties": false, "required": ["op", "target", "target_id", "changes"], "properties": {"operation_id": {"$ref": "#/$defs/operationId"}, "op": {"const": "update"}, "target": {"enum": ["node", "edge"]}, "target_id": {"type": "string"}, "changes": {"type": "object"}}, "oneOf": [{"properties": {"target": {"const": "node"}, "target_id": {"$ref": "#/$defs/nodeId"}, "changes": {"$ref": "#/$defs/nodeChanges"}}}, {"properties": {"target": {"const": "edge"}, "target_id": {"$ref": "#/$defs/edgeId"}, "changes": {"$ref": "#/$defs/edgeChanges"}}}]},
+        {"type": "object", "additionalProperties": false, "required": ["op", "source_id", "target_id"], "properties": {"operation_id": {"$ref": "#/$defs/operationId"}, "op": {"const": "merge"}, "source_id": {"$ref": "#/$defs/nodeId"}, "target_id": {"$ref": "#/$defs/nodeId"}}},
+        {"type": "object", "additionalProperties": false, "required": ["op", "target_id", "parent_id", "position"], "properties": {"operation_id": {"$ref": "#/$defs/operationId"}, "op": {"const": "move"}, "target_id": {"$ref": "#/$defs/nodeId"}, "parent_id": {"anyOf": [{"$ref": "#/$defs/nodeId"}, {"type": "null"}]}, "position": {"type": "integer", "minimum": 0}}},
+        {"type": "object", "additionalProperties": false, "required": ["op", "record"], "properties": {"operation_id": {"$ref": "#/$defs/operationId"}, "op": {"const": "link"}, "record": {"oneOf": [{"$ref": "#/$defs/partialEdgeRecord"}, {"$ref": "#/$defs/fullEdgeRecord"}]}}},
+        {"type": "object", "additionalProperties": false, "required": ["op", "target_id"], "properties": {"operation_id": {"$ref": "#/$defs/operationId"}, "op": {"const": "unlink"}, "target_id": {"$ref": "#/$defs/edgeId"}}},
+        {"type": "object", "additionalProperties": false, "required": ["op", "target", "target_id"], "properties": {"operation_id": {"$ref": "#/$defs/operationId"}, "op": {"const": "retire"}, "target": {"enum": ["node", "edge"]}, "target_id": {"type": "string"}}, "oneOf": [{"properties": {"target": {"const": "node"}, "target_id": {"$ref": "#/$defs/nodeId"}}}, {"properties": {"target": {"const": "edge"}, "target_id": {"$ref": "#/$defs/edgeId"}}}]},
+        {"type": "object", "additionalProperties": false, "required": ["op", "target", "target_id"], "properties": {"operation_id": {"$ref": "#/$defs/operationId"}, "op": {"const": "restore"}, "target": {"enum": ["node", "edge"]}, "target_id": {"type": "string"}}, "oneOf": [{"properties": {"target": {"const": "node"}, "target_id": {"$ref": "#/$defs/nodeId"}}}, {"properties": {"target": {"const": "edge"}, "target_id": {"$ref": "#/$defs/edgeId"}}}]}
+      ]
+    }
+  },
+  "allOf": [
+    {"allOf": [{"if": {"properties": {"proposed_graph_operations": {"minItems": 1}}}, "then": {"properties": {"completed_operations": {"contains": {"const": "propose_graph_diff"}}}}}, {"if": {"properties": {"completed_operations": {"contains": {"const": "propose_graph_diff"}}}}, "then": {"anyOf": [{"properties": {"proposed_graph_operations": {"minItems": 1}}}, {"properties": {"errors": {"contains": {"type": "object", "required": ["code"], "properties": {"code": {"const": "no_result:propose_graph_diff"}}}}}}]}}]},
+    {"allOf": [{"if": {"properties": {"evidence": {"minItems": 1}}}, "then": {"properties": {"completed_operations": {"contains": {"const": "exact_locator_evidence"}}}}}, {"if": {"properties": {"completed_operations": {"contains": {"const": "exact_locator_evidence"}}}}, "then": {"anyOf": [{"properties": {"evidence": {"minItems": 1}}}, {"properties": {"errors": {"contains": {"type": "object", "required": ["code"], "properties": {"code": {"const": "no_result:exact_locator_evidence"}}}}}}]}}]},
+    {"allOf": [{"if": {"properties": {"accessed_sources": {"minItems": 1}}}, "then": {"properties": {"completed_operations": {"contains": {"const": "source_provenance"}}}}}, {"if": {"properties": {"completed_operations": {"contains": {"const": "source_provenance"}}}}, "then": {"anyOf": [{"properties": {"accessed_sources": {"minItems": 1}}}, {"properties": {"errors": {"contains": {"type": "object", "required": ["code"], "properties": {"code": {"const": "no_result:source_provenance"}}}}}}]}}]},
+    {"allOf": [{"if": {"properties": {"outline_suggestions": {"minItems": 1}}}, "then": {"properties": {"completed_operations": {"contains": {"const": "outline_suggestions"}}}}}, {"if": {"properties": {"completed_operations": {"contains": {"const": "outline_suggestions"}}}}, "then": {"anyOf": [{"properties": {"outline_suggestions": {"minItems": 1}}}, {"properties": {"errors": {"contains": {"type": "object", "required": ["code"], "properties": {"code": {"const": "no_result:outline_suggestions"}}}}}}]}}]},
+    {"allOf": [{"if": {"properties": {"disagreements": {"minItems": 1}}}, "then": {"properties": {"completed_operations": {"contains": {"const": "disagreements"}}}}}, {"if": {"properties": {"completed_operations": {"contains": {"const": "disagreements"}}}}, "then": {"anyOf": [{"properties": {"disagreements": {"minItems": 1}}}, {"properties": {"errors": {"contains": {"type": "object", "required": ["code"], "properties": {"code": {"const": "no_result:disagreements"}}}}}}]}}]},
+    {"allOf": [{"if": {"properties": {"gaps": {"minItems": 1}}}, "then": {"properties": {"completed_operations": {"contains": {"const": "gaps"}}}}}, {"if": {"properties": {"completed_operations": {"contains": {"const": "gaps"}}}}, "then": {"anyOf": [{"properties": {"gaps": {"minItems": 1}}}, {"properties": {"errors": {"contains": {"type": "object", "required": ["code"], "properties": {"code": {"const": "no_result:gaps"}}}}}}]}}]}
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/hooks/notify_turn_complete.py\"",
+            "commandWindows": "py -3 \"%PLUGIN_ROOT%\\hooks\\notify_turn_complete.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

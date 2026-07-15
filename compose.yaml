@@ -1,0 +1,31 @@
+services:
+  cli:
+    build:
+      context: .
+      args:
+        BASE_IMAGE: "${SOLERESEARCH_BASE_IMAGE:-python:3.12-slim}"
+        USER_ID: "${SOLERESEARCH_UID:-1000}"
+        GROUP_ID: "${SOLERESEARCH_GID:-1000}"
+    working_dir: /workspace
+    volumes:
+      - "${SOLERESEARCH_WORKSPACE:-.}:/workspace"
+      # Controller-only mount. Future worker services must not inherit it.
+      - "${SOLERESEARCH_CONFIG_HOME:-/tmp/soleresearch-config}:/controller-config"
+    environment:
+      PYTHONUNBUFFERED: "1"
+      SOLERESEARCH_CONFIG_HOME: "/controller-config"
+  ui:
+    build:
+      context: .
+      args:
+        BASE_IMAGE: "${SOLERESEARCH_BASE_IMAGE:-python:3.12-slim}"
+        USER_ID: "${SOLERESEARCH_UID:-1000}"
+        GROUP_ID: "${SOLERESEARCH_GID:-1000}"
+    working_dir: /workspace
+    volumes:
+      - "${SOLERESEARCH_WORKSPACE:-.}:/workspace"
+    environment:
+      PYTHONUNBUFFERED: "1"
+    command: ["serve", "${SOLERESEARCH_PROJECT:-/workspace/research-project}", "--host", "0.0.0.0", "--port", "8765", "--unsafe-non-loopback"]
+    ports:
+      - "127.0.0.1:${SOLERESEARCH_UI_PORT:-8765}:8765"

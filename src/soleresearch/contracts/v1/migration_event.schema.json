@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soleresearch.local/schemas/v1/migration_event.schema.json",
+  "title": "Soleresearch explicit project migration event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "migration_id", "project_id", "document", "from_version", "to_version", "before_hash", "after_hash", "graph_contract", "recorded_at"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "migration_id": {"type": "string", "pattern": "^mig_[0-9a-f]{32}$"},
+    "project_id": {"type": "string", "minLength": 1},
+    "document": {"enum": ["outline.meta.json"]},
+    "from_version": {"type": "integer", "const": 1},
+    "to_version": {"type": "integer", "const": 2},
+    "before_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "after_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "graph_contract": {"enum": ["strict_v1"]},
+    "recorded_at": {"type": "string", "format": "date-time"}
+  }
+}

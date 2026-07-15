@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Reviewed Zotero import bundle manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "project_id", "review_status", "zotero_mutated", "network_used", "files", "csl_items", "citation_analysis", "review_checks"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "project_id": {"type": "string", "pattern": "^prj_[0-9a-f]{32}$"},
+    "review_status": {"type": "string", "const": "pending_human_review"},
+    "zotero_mutated": {"type": "boolean", "const": false},
+    "network_used": {"type": "boolean", "const": false},
+    "files": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "bytes"],
+        "properties": {
+          "path": {"enum": ["references.bib", "references.csl.json"]},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "bytes": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "csl_items": {"type": "integer", "minimum": 0},
+    "citation_analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bibtex_entries", "csl_items", "duplicates", "identity_mismatches"],
+      "properties": {
+        "bibtex_entries": {"type": "integer", "minimum": 0},
+        "csl_items": {"type": "integer", "minimum": 0},
+        "duplicates": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bibtex_citation_keys", "bibtex_dois", "bibtex_arxiv_ids", "csl_citation_ids", "csl_dois", "csl_arxiv_ids"],
+          "properties": {
+            "bibtex_citation_keys": {"type": "array", "items": {"type": "string"}},
+            "bibtex_dois": {"type": "array", "items": {"type": "string"}},
+            "bibtex_arxiv_ids": {"type": "array", "items": {"type": "string"}},
+            "csl_citation_ids": {"type": "array", "items": {"type": "string"}},
+            "csl_dois": {"type": "array", "items": {"type": "string"}},
+            "csl_arxiv_ids": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "identity_mismatches": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bibtex_only", "csl_json_only"],
+          "properties": {
+            "bibtex_only": {"type": "array", "items": {"type": "string"}},
+            "csl_json_only": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      }
+    },
+    "review_checks": {"type": "array", "items": {"type": "string"}}
+  }
+}

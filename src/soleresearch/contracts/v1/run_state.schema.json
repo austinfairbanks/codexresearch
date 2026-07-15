@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://soleresearch.local/schemas/v1/run_state.schema.json",
+  "type": "object", "additionalProperties": false, "required": ["schema_version", "run_id", "status", "pause_reason", "current_cycle", "accepted_result_ids", "ratification_diff_ids", "updated_at"],
+  "properties": {"schema_version": {"type": "integer", "const": 1}, "run_id": {"type": "string", "pattern": "^run_[0-9a-f]{32}$"}, "status": {"type": "string", "enum": ["active", "paused", "finished"]}, "pause_reason": {"type": ["string", "null"]}, "current_cycle": {"type": "integer", "minimum": 1}, "accepted_result_ids": {"type": "array", "items": {"type": "string"}}, "ratification_diff_ids": {"type": "array", "items": {"type": "string"}}, "updated_at": {"type": "string", "format": "date-time"}}
+}

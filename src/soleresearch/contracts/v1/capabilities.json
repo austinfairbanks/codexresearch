@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "namespace": "soleresearch",
+  "executable": "sole-research",
+  "commands": {
+    "adapter": {"writes_canonical_state": false, "network": false},
+    "diff": {"writes_canonical_state": true, "network": false, "canonical_writer": "controller_capability"},
+    "discuss": {"writes_canonical_state": true, "network": false},
+    "doctor": {"writes_canonical_state": false, "network": false},
+    "export": {"writes_canonical_state": false, "network": false},
+    "evidence": {"writes_canonical_state": true, "network": false},
+    "import": {"writes_canonical_state": true, "network": true},
+    "init": {"writes_canonical_state": true, "network": false},
+    "migrate": {"writes_canonical_state": true, "network": false},
+    "rebuild-index": {"writes_canonical_state": false, "network": false},
+    "reconcile": {"writes_canonical_state": true, "network": false, "canonical_writer": "controller_capability"},
+    "run": {"writes_canonical_state": true, "network": false, "canonical_writer": "run_controller_capability"},
+    "resume": {"writes_canonical_state": true, "network": false, "canonical_writer": "run_controller_capability"},
+    "budget": {"writes_canonical_state": true, "network": false, "canonical_writer": "run_controller_capability"},
+    "gate": {"writes_canonical_state": true, "network": false, "canonical_writer": "run_controller_capability"},
+    "scaffold": {"writes_canonical_state": true, "network": false, "canonical_writer": "controller_capability"},
+    "serve": {"writes_canonical_state": true, "network": false, "canonical_writer": "none_read_only_or_human_controller_capability_edit"},
+    "source": {"writes_canonical_state": true, "network": false},
+    "status": {"writes_canonical_state": false, "network": false},
+    "tools": {"writes_canonical_state": false, "network": false},
+    "zotero-bundle": {"writes_canonical_state": false, "network": false}
+  }
+}

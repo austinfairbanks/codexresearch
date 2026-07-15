@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Generated adapter human review approval",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "record_type", "project_id", "capability_subject", "capability_id", "approved_at", "reason", "manifest_sha256", "contract_test_passed", "install_status"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "record_type": {"type": "string", "const": "adapter_review_approval"},
+    "project_id": {"type": "string", "pattern": "^prj_[0-9a-f]{32}$"},
+    "capability_subject": {"type": "string", "const": "human-controller"},
+    "capability_id": {"type": "string", "pattern": "^cap_[0-9a-f]{32}$"},
+    "approved_at": {"type": "string", "format": "date-time"},
+    "reason": {"type": "string", "minLength": 1},
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "contract_test_passed": {"type": "boolean", "const": true},
+    "install_status": {"type": "string", "const": "not_installed"}
+  }
+}

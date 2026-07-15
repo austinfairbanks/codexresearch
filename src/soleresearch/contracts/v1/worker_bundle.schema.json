@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soleresearch.local/schemas/v1/worker_bundle.schema.json",
+  "title": "Soleresearch secret-free worker context bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "bundle_id", "broker_created_at", "lease_expires_at", "task", "sources", "evidence", "result_schema", "result_template"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "bundle_id": {"type": "string", "pattern": "^bun_[0-9a-f]{32}$"},
+    "broker_created_at": {"type": "string", "format": "date-time"},
+    "lease_expires_at": {"type": "string", "format": "date-time"},
+    "task": {"type": "object"},
+    "sources": {
+      "type": "array",
+      "maxItems": 15,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact_reference", "source_id", "title", "authors", "published", "source_type", "source_hash", "source_version", "provenance_urls", "quality", "data_policy", "extraction", "material_truncated", "original_characters", "included_characters"],
+        "properties": {
+          "artifact_reference": {"type": "string", "pattern": "^source:.+"},
+          "source_id": {"type": "string", "minLength": 1},
+          "title": {"type": "string"},
+          "authors": {"type": "array", "items": {"type": "string"}},
+          "published": {"type": ["string", "null"]},
+          "source_type": {"type": "string", "minLength": 1},
+          "source_hash": {"type": ["string", "null"]},
+          "source_version": {"type": "string", "minLength": 1},
+          "provenance_urls": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "quality": {"type": "object"},
+          "data_policy": {"enum": ["public_only", "local_private"]},
+          "extraction": {"type": ["object", "null"]},
+          "material_truncated": {"type": "boolean"},
+          "original_characters": {"type": "integer", "minimum": 0},
+          "included_characters": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact_reference", "record"],
+        "properties": {
+          "artifact_reference": {"type": "string", "pattern": "^evidence:.+"},
+          "record": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["evidence_id", "source_id", "source_hash", "source_version", "locator", "excerpt", "retrieved_at"],
+            "properties": {
+              "evidence_id": {"type": "string", "minLength": 1},
+              "source_id": {"type": "string", "minLength": 1},
+              "source_hash": {"type": "string", "minLength": 1},
+              "source_version": {"type": "string", "minLength": 1},
+              "locator": {"type": "object"},
+              "excerpt": {"type": "string", "minLength": 1},
+              "retrieved_at": {"type": "string", "format": "date-time"}
+            }
+          }
+        }
+      }
+    },
+    "result_schema": {"type": "object"},
+    "result_template": {"type": "object"}
+  }
+}

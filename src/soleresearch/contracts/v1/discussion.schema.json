@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soleresearch.local/schemas/v1/discussion.schema.json",
+  "title": "Soleresearch entity-scoped discussion entry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "discussion_id", "entry_id", "entity_type", "entity_id", "entry_type", "actor_type", "actor_id", "content", "promoted_node_id", "created_at"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "discussion_id": {"type": "string", "pattern": "^dsc_[0-9a-f]{32}$"},
+    "entry_id": {"type": "string", "pattern": "^ent_[0-9a-f]{32}$"},
+    "entity_type": {"enum": ["node", "edge", "source", "evidence"]},
+    "entity_id": {"type": "string", "minLength": 1},
+    "entry_type": {"enum": ["turn", "promoted_takeaway"]},
+    "actor_type": {"enum": ["human", "agent", "orchestrator"]},
+    "actor_id": {"type": "string", "minLength": 1},
+    "content": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"},
+    "promoted_node_id": {"type": ["string", "null"]},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}
