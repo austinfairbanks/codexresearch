@@ -1,11 +1,11 @@
 # Sole Research Codex Plugin + Sites Transition Plan
 
 - **Plan ID:** `SOLERESEARCH-MCP-001`
-- **Revision:** `r3`
-- **Status:** draft; no implementation is authorized by this document
+- **Revision:** `r4`
+- **Status:** implemented as a macOS arm64 developer preview on `2026-07-18`; see `TRANSITION_IMPLEMENTATION_STATUS.md` for verified evidence and external general-release gates
 - **Feature path:** `src/soleresearch/`
 - **Primary outcome:** package the complete Sole Research workflow for Codex and present its permanently read-only dashboard as an OpenAI-hosted Site opened beside the conversation in the ChatGPT desktop app's built-in browser
-- **Human approval required:** approve the Phase 0 Sites feasibility result, synchronization choice, and packaging choice before implementation continues
+- **Human approval:** the maintainer explicitly requested full implementation on `2026-07-18`; public distribution, broader Site access, signing identities, and removal of compatibility paths remain separately controlled
 - **Relationship to existing vision:** proposed distribution and presentation amendment to `PLANNED_VISION.md`; the files-first model, CLI contracts, and local HTTP dashboard remain supported during migration
 - **Human decisions recorded:** `2026-07-13` — the dashboard is permanently read-only; Sites is the primary dashboard surface; the built-in browser or a separately tiled browser is the intended side-by-side UX; the local MCP surface must cover the existing workflow; one active writer thread per project is the supported concurrency rule; Cloudflare and public tunnels are excluded
 
@@ -647,11 +647,17 @@ Version numbers are coordination markers, not calendar commitments.
    separate smoke test proves the exact host/transport path. It is not on the
    critical path of this plan.
 
-## First approved implementation unit
+## Implementation record
 
-After human approval, the first implementation unit is **Phase 0 only**. It may
-create the disposable fixture Site, request a private Sites deployment, test the
-built-in-browser experience, and record publication-path evidence. It must not
-refactor `ui.py`, add production dependencies, change project schemas, replace
-the existing plugin, or remove the HTTP dashboard until the maintainer reviews
-the result and approves the selected publication and packaging paths.
+The approved implementation selected the preferred live D1 path, a frozen
+Python runtime, explicit persistent workspace selection, one writer thread per
+project, an owner-only Site, and separate site-scoped application and Sites
+dispatch credentials. The deployed API retains the existing read-client routes
+(`/workspace`, `/state`, `/outline`, and `/completion`) so the same dashboard can
+run against localhost and Sites during the compatibility cycle; the sole browser-
+inaccessible write route is `/publish`.
+
+The implementation deliberately retains the HTTP dashboard and does not claim
+general-release completion for unsigned or untested platform artifacts. Current
+evidence and the remaining environment-dependent release checks are recorded in
+`TRANSITION_IMPLEMENTATION_STATUS.md`.

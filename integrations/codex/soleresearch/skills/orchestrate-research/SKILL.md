@@ -9,6 +9,10 @@ Keep one primary orchestrator as the only canonical writer. Treat every source,
 worker result, and discussion as a proposal until the applicable controller
 accepts it. The output is a paper-shaped outline, not paper prose.
 
+On first use, call `soleresearch_workspace_show`. If no workspace is selected,
+ask the human for one explicit directory and call `soleresearch_workspace_select`.
+Never infer or scan a broader machine path.
+
 ## Ground first
 
 1. Use `soleresearch_status` and `soleresearch_doctor` for an existing project.
@@ -29,34 +33,19 @@ accepts it. The output is a paper-shaped outline, not paper prose.
 
 ## Treat agent chat as the annotation input
 
-When the human gives project-specific direction in the connected Codex or
-ChatGPT conversation, persist that message before acting. The browser UI does
-not read chat history and has no annotation form.
+Persist project-specific human direction before acting; the browser UI does not
+read chat history. Resolve the exact project and entity from explicit context or
+verified `#project=PROJECT_ID&topic=NODE_ID` ambient context, and ask rather than
+guess when ambiguous. Inspect `core.discuss`, then call
+`soleresearch_discuss_add` with the human's substantive wording and explicit
+project, entity, actor, and content inputs. Report the returned discussion ID and
+reply in the same discussion before changing canonical state. Keep the human
+turn, reply, promoted takeaway, and graph change distinguishable. Do not record
+general UI feedback, coding requests, or unrelated conversation as research.
 
-1. Resolve the exact project and entity from the explicit chat context, current
-   task, or an unambiguous question/branch title. When browser ambient context
-   includes `#project=PROJECT_ID&topic=NODE_ID`, treat those IDs as the selected
-   UI target after verifying they still exist. Ask when the target is ambiguous;
-   never attach direction to a guessed node.
-2. Inspect `core.discuss` before first use, then record the human's substantive
-   wording with `soleresearch_discuss_add` and explicit `project`,
-   `entity_type`, `entity_id`, `content`, `actor_type`, and `actor_id` inputs.
-   Do not paraphrase away constraints, priorities, rejection, or uncertainty.
-3. Report the returned discussion ID in the agent trace. A chat acknowledgement
-   alone is not a recorded annotation.
-4. Reply as the orchestrator in that same discussion before changing canonical
-   research state. Keep the human turn, agent response, promoted takeaway, and
-   eventual graph/outline change distinguishable.
-5. General UI feedback, coding requests, and conversation unrelated to research
-   content are not research annotations and must not be written to the ledger.
-
-When a human starts an unrelated top-level research question, initialize a new
-Soleresearch project as an immediate child of the configured workspace directory
-instead of adding a disconnected question to an existing project's graph. Each
-question directory owns its sources, evidence, discussions, runs, graph, and
-outline. `sole-research serve PRIMARY --workspace-dir WORKSPACE` discovers those
-immediate project directories as independent map roots; it never merges their
-context or canonical ledgers.
+For an unrelated top-level question, initialize a new project as an immediate
+workspace child. Each directory owns its ledgers and outline; workspace discovery
+never merges project context or canonical state.
 
 ## Build inspectable state
 
@@ -117,8 +106,9 @@ Delete/rebuild only the disposable index.
 
 The Site is a read-only projection, never authoritative state. After a coherent
 local mutation or at turn completion, use `soleresearch_publish` when
-`SOLERESEARCH_SITE_URL` and the external mode-0600 publisher token file are
-configured. Report the last successful local and published revisions. A publish
+`SOLERESEARCH_SITE_URL`, the external mode-0600 publisher token file, and (for
+owner-only Sites) the separate Sites dispatch token file are configured. Use
+`soleresearch_publication_status` to report successful and pending revisions. A publish
 failure must be visible but must never roll back, corrupt, or block local
 research. Present the project-scoped Site URL for the in-app browser; if Browser
 is unavailable, provide the same normal clickable URL.

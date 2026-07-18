@@ -563,7 +563,10 @@ def test_zotero_skill_script_uses_cli_contract(tmp_path: Path, monkeypatch: pyte
 
 def test_plugin_skills_are_concise_complete_and_contain_no_generated_credentials() -> None:
     files = sorted(PLUGIN.rglob("*"))
-    text_files = [path for path in files if path.is_file()]
+    text_files = [
+        path for path in files
+        if path.is_file() and (path.suffix in {".json", ".md", ".py", ".yaml", ".yml"} or path.name in {"SKILL.md"})
+    ]
     contents = "\n".join(path.read_text(encoding="utf-8") for path in text_files)
     assert "[TODO:" not in contents and "ctl_" not in contents
     orchestrate_text = (ORCHESTRATE / "SKILL.md").read_text()

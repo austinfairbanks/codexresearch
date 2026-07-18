@@ -25,10 +25,23 @@ function validProjection(value: unknown): value is Projection {
     && typeof item.project_id === "string" && PROJECT_ID.test(item.project_id)
     && typeof item.thread_id === "string" && item.thread_id.length > 0 && item.thread_id.length <= 200
     && typeof item.project_revision === "string" && REVISION.test(item.project_revision)
+    && typeof item.content_sha256 === "string" && REVISION.test(item.content_sha256)
     && Number.isSafeInteger(item.published_revision) && Number(item.published_revision) > 0
     && typeof item.produced_at === "string"
+    && !!item.collections && typeof item.collections === "object"
+    && typeof item.truncated === "boolean"
     && !!item.outline && typeof item.outline.content === "string"
     && !!item.state && typeof item.state === "object";
+}
+
+async function validContentHash(projection: Projection, bodyText: string): Promise<boolean> {
+  const marker = `\"content_sha256\":${JSON.stringify(projection.content_sha256)},`;
+  const index = bodyText.indexOf(marker);
+  if (index < 0 || bodyText.indexOf(marker, index + marker.length) >= 0) return false;
+  const canonicalWithoutHash = bodyText.slice(0, index) + bodyText.slice(index + marker.length);
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonicalWithoutHash));
+  const actual = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return actual === projection.content_sha256;
 }
 
 export async function POST(request: Request) {
@@ -43,23 +56,26 @@ export async function POST(request: Request) {
   const body = await request.arrayBuffer();
   if (body.byteLength > MAX_BODY_BYTES) return Response.json({ error: "projection is too large" }, { status: 413 });
   let projection: unknown;
+  const bodyText = new TextDecoder().decode(body);
   try {
-    projection = JSON.parse(new TextDecoder().decode(body));
+    projection = JSON.parse(bodyText);
   } catch {
     return Response.json({ error: "invalid JSON" }, { status: 400 });
   }
   if (!validProjection(projection)) return Response.json({ error: "invalid projection contract" }, { status: 400 });
+  if (!(await validContentHash(projection, bodyText))) return Response.json({ error: "projection content hash mismatch" }, { status: 400 });
 
   const db = database();
   await ensureSnapshotSchema(db);
   const current = await db.prepare(
-    "SELECT published_revision, project_revision FROM projects WHERE project_id = ?1",
-  ).bind(projection.project_id).first<{ published_revision: number; project_revision: string }>();
+    "SELECT published_revision, project_revision, snapshot FROM projects WHERE project_id = ?1",
+  ).bind(projection.project_id).first<{ published_revision: number; project_revision: string; snapshot: string }>();
   if (current && projection.published_revision < current.published_revision) {
     return Response.json({ error: "stale revision", current_revision: current.published_revision }, { status: 409 });
   }
   if (current && projection.published_revision === current.published_revision) {
-    if (projection.project_revision !== current.project_revision) {
+    const currentProjection = JSON.parse(current.snapshot) as Projection;
+    if (projection.project_revision !== current.project_revision || projection.content_sha256 !== currentProjection.content_sha256) {
       return Response.json({ error: "revision identity conflict", current_revision: current.published_revision }, { status: 409 });
     }
     return Response.json({ project_id: projection.project_id, published_revision: projection.published_revision, idempotent: true });
@@ -78,6 +94,8 @@ export async function POST(request: Request) {
         snapshot = excluded.snapshot
       WHERE excluded.published_revision > projects.published_revision`)
       .bind(projection.project_id, projection.published_revision, projection.project_revision, projection.produced_at, snapshot),
+    db.prepare("DELETE FROM revisions WHERE project_id = ?1 AND published_revision NOT IN (SELECT published_revision FROM revisions WHERE project_id = ?1 ORDER BY published_revision DESC LIMIT 20)")
+      .bind(projection.project_id),
   ]);
   return Response.json({ project_id: projection.project_id, published_revision: projection.published_revision, idempotent: false }, { status: 201 });
 }

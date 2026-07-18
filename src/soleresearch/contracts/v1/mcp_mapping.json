@@ -32,6 +32,6 @@
   "notes": [
     "Every argparse leaf except the MCP server command is exposed as one named MCP tool.",
     "The persistent local HTTP dashboard remains a direct compatibility command.",
-    "Project and artifact paths are confined to SOLERESEARCH_WORKSPACE_ROOT; controller capability files must be regular non-symlink files."
+    "Project and artifact paths are confined to an explicit selected workspace; credential files must be regular non-symlink files outside project data."
   ]
 }

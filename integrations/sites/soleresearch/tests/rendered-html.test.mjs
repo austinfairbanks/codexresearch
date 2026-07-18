@@ -44,6 +44,8 @@ test("publisher is authenticated, bounded, revision-safe, and browser routes sta
   assert.match(publisher, /MAX_BODY_BYTES/);
   assert.match(publisher, /stale revision/);
   assert.match(publisher, /revision identity conflict/);
+  assert.match(publisher, /projection content hash mismatch/);
+  assert.match(publisher, /LIMIT 20/);
   assert.match(publisher, /crypto\.subtle\.digest/);
   assert.doesNotMatch(worker, /PUT|PATCH|DELETE/);
 });

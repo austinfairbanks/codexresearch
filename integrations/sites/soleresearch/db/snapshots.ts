@@ -6,8 +6,11 @@ export type Projection = {
   project_id: string;
   thread_id: string;
   project_revision: string;
+  content_sha256: string;
   published_revision: number;
   produced_at: string;
+  collections: Record<string, { total: number; included: number; truncated: boolean }>;
+  truncated: boolean;
   outline: {
     hash: string;
     dirty: boolean;

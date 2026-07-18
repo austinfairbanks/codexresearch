@@ -14,29 +14,32 @@ Python or Node installation on the target machine.
 ## Try the transition locally
 
 The checked-in plugin currently includes the macOS arm64 standalone runtime.
-Set an explicit workspace root before installing it so the MCP server never
+Select an explicit workspace root before installing it so the MCP server never
 scans outside the selected directory:
 
 ```bash
-export SOLERESEARCH_WORKSPACE_ROOT="$PWD"
+integrations/codex/soleresearch/bin/sole-research workspace select "$PWD"
 integrations/codex/soleresearch/bin/sole-research doctor
 ```
 
 For source development, the existing `uv` workflow remains available. Generate
-a private publisher token outside every research project, configure the same
-secret in the Site, then publish a local project:
+a private publisher token outside every research project and configure the same
+secret in the Site. An owner-only Site also needs its Sites dispatch-bypass
+token stored in a separate mode-0600 file:
 
 ```bash
 openssl rand -hex -out "$HOME/.config/soleresearch/sites-publisher.token" 32
 chmod 600 "$HOME/.config/soleresearch/sites-publisher.token"
 uv run sole-research publish ./research-project \
   --site-url "https://YOUR-SITE" \
-  --publisher-token-file "$HOME/.config/soleresearch/sites-publisher.token"
+  --publisher-token-file "$HOME/.config/soleresearch/sites-publisher.token" \
+  --sites-auth-token-file "$HOME/.config/soleresearch/sites-auth.token"
 ```
 
-`publish` accepts plain HTTP only for loopback development. A failed publish
-does not modify canonical research files; the next successful publication uses
-the next local revision. The Site is permanently read-only and should remain at
+`publish` accepts plain HTTP only for loopback development. It keeps an exact
+retry outbox and uses bounded backoff; a failed publish does not modify
+canonical research files. Inspect it with `sole-research publication status
+PROJECT`. The Site is permanently read-only and should remain at
 owner-only or the narrowest workspace access level that fits the project.
 
 The research graph is reviewable rather than conversationally implicit. Typed

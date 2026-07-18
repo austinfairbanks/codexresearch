@@ -18,8 +18,10 @@ SOLERESEARCH_PUBLISH_TOKEN=replace-with-a-long-random-value npm run dev
 npm run build
 ```
 
-The Python publisher posts only to `/api/v1/publish`. That route requires the
-site-scoped bearer secret, rejects projections over 2 MiB, rejects stale or
-conflicting revisions, and writes the current project row plus immutable
-revision history atomically. Browser routes are read-only and rely on the Sites
-audience policy for access.
+The Python publisher posts only to `/api/v1/publish`. Owner-only deployments
+also require the separate Sites dispatch credential in the
+`OAI-Sites-Authorization` header. The route requires the site-scoped application
+secret, rejects projections over 2 MiB, verifies their content hash, rejects
+stale or conflicting revisions, and atomically writes the current row plus the
+latest 20 immutable revisions. Browser routes are read-only and rely on the
+Sites audience policy for access.

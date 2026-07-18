@@ -86,5 +86,6 @@ def notify_turn_complete(raw: bytes) -> None:
             Path(project),
             site_url=site_url,
             publisher_token_file=Path(token_file),
+            sites_auth_token_file=(Path(os.environ["SOLERESEARCH_SITES_AUTH_TOKEN_FILE"]) if os.environ.get("SOLERESEARCH_SITES_AUTH_TOKEN_FILE") else None),
             thread_id=payload["turn_id"],
         )

@@ -18,7 +18,7 @@ from soleresearch.integrations import approve_adapter, generate_adapter, prepare
 from soleresearch.migrations import migrate_project
 from soleresearch.orchestration import RunRepository, validate_result_with_bundle
 from soleresearch.project import initialize_project, load_project, project_status, utc_now
-from soleresearch.projection import build_dashboard_projection, next_dashboard_projection, publish_dashboard_projection
+from soleresearch.projection import build_dashboard_projection, next_dashboard_projection, publication_status, publish_dashboard_projection
 from soleresearch.schemas import SCHEMA_VERSION, tool_catalog, validate_document
 from soleresearch.storage import atomic_write_json
 from soleresearch.sources import (
@@ -45,6 +45,11 @@ def _parser() -> argparse.ArgumentParser:
     commands.add_parser("mcp", help="serve the complete bounded workflow over stdio MCP")
     hook = commands.add_parser("hook", help="run packaged lifecycle hook helpers")
     hook.add_argument("action", choices=("turn-complete",))
+    workspace = commands.add_parser("workspace", help="select or inspect the explicit MCP workspace root")
+    workspace_actions = workspace.add_subparsers(dest="action", required=True)
+    workspace_select = workspace_actions.add_parser("select")
+    workspace_select.add_argument("path", type=Path)
+    workspace_actions.add_parser("show")
 
     init = commands.add_parser("init", help="atomically initialize a research project")
     init.add_argument("project", type=Path)
@@ -72,7 +77,13 @@ def _parser() -> argparse.ArgumentParser:
     publish.add_argument("project", type=Path)
     publish.add_argument("--site-url", required=True)
     publish.add_argument("--publisher-token-file", required=True, type=Path)
+    publish.add_argument("--sites-auth-token-file", type=Path)
     publish.add_argument("--thread-id", default="unknown")
+
+    publication = commands.add_parser("publication", help="inspect Sites publication and retry state")
+    publication_actions = publication.add_subparsers(dest="action", required=True)
+    publication_status_parser = publication_actions.add_parser("status")
+    publication_status_parser.add_argument("project", type=Path)
 
     serve = commands.add_parser("serve", help="serve the local outline-first web UI")
     serve.add_argument("project", type=Path)
@@ -706,6 +717,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                 pass
             sys.stdout.write('{"continue":true}\n')
             return 0
+        elif args.command == "workspace":
+            from soleresearch.mcp_server import select_workspace_root, selected_workspace_root
+
+            if args.action == "select":
+                result = select_workspace_root(args.path)
+            else:
+                selected = selected_workspace_root()
+                result = {"schema_version": SCHEMA_VERSION, "workspace_root": None if selected is None else str(selected)}
         elif args.command == "doctor":
             result = _doctor(args.project)
             if not result["ok"]:
@@ -737,8 +756,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.project,
                 site_url=args.site_url,
                 publisher_token_file=args.publisher_token_file,
+                sites_auth_token_file=args.sites_auth_token_file,
                 thread_id=args.thread_id,
             )
+        elif args.command == "publication":
+            result = publication_status(args.project)
         elif args.command == "serve":
             token = read_controller_capability(args.controller_token_file) if args.edit else None
             serve_ui(

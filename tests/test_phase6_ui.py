@@ -563,7 +563,7 @@ def test_ui_redesign_uses_progressive_disclosure_and_stable_refresh() -> None:
         "function failInitialLoad(error)",
         "if (initialLoadComplete) return",
         "function pollCompletionSignal()",
-        'fetch("/api/v1/completion", {cache: "no-store"})',
+            'fetch(projectApi("/api/v1/completion"), {cache: "no-store"})',
         "completionRefreshQueued = true",
         "pollCompletionSignal().catch(() => {})",
         "previewContent = null",

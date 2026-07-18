@@ -4,7 +4,7 @@
       "command": "./bin/sole-research",
       "args": ["mcp"],
       "cwd": ".",
-      "env_vars": ["SOLERESEARCH_WORKSPACE_ROOT", "SOLERESEARCH_CONFIG_HOME"]
+      "env_vars": ["SOLERESEARCH_WORKSPACE_ROOT", "SOLERESEARCH_CONFIG_HOME", "SOLERESEARCH_SITE_URL", "SOLERESEARCH_PUBLISHER_TOKEN_FILE", "SOLERESEARCH_SITES_AUTH_TOKEN_FILE"]
     }
   }
 }

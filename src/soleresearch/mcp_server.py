@@ -10,7 +10,9 @@ from pathlib import Path
 from typing import Any, BinaryIO, Callable, TextIO
 
 from soleresearch import __version__
+from soleresearch.controller import config_home
 from soleresearch.errors import ProjectError
+from soleresearch.storage import atomic_write_json, read_json
 
 MCP_PROTOCOL_VERSION = "2025-06-18"
 SERVER_INSTRUCTIONS = (
@@ -20,6 +22,7 @@ SERVER_INSTRUCTIONS = (
 )
 READ_ONLY_COMMANDS = {"doctor", "status", "projection", "tools"}
 COMPATIBILITY_ONLY = {"serve"}
+WORKSPACE_CONFIG = "workspace.json"
 
 
 @dataclass(frozen=True)
@@ -107,10 +110,40 @@ def _leaf_tools(parser: argparse.ArgumentParser) -> list[CommandTool]:
 
 def _workspace_root() -> Path:
     configured = os.environ.get("SOLERESEARCH_WORKSPACE_ROOT")
-    root = Path(configured).resolve() if configured else Path.cwd().resolve()
+    if configured:
+        root = Path(configured).resolve()
+    else:
+        selected = selected_workspace_root()
+        if selected is None:
+            raise ProjectError("no MCP workspace selected; call soleresearch_workspace_select first")
+        root = selected
     if not root.is_dir() or root.is_symlink():
         raise ProjectError("MCP workspace root must be a real directory")
     return root
+
+
+def selected_workspace_root() -> Path | None:
+    path = config_home() / WORKSPACE_CONFIG
+    if not path.is_file() or path.is_symlink():
+        return None
+    value = read_json(path)
+    root = value.get("workspace_root") if isinstance(value, dict) else None
+    if not isinstance(root, str) or not root:
+        raise ProjectError("invalid selected workspace configuration")
+    resolved = Path(root).resolve()
+    if not resolved.is_dir() or resolved.is_symlink():
+        raise ProjectError("selected workspace root is unavailable or unsafe")
+    return resolved
+
+
+def select_workspace_root(path: Path) -> dict[str, Any]:
+    resolved = path.resolve()
+    if not resolved.is_dir() or resolved.is_symlink():
+        raise ProjectError("workspace root must be an existing real directory")
+    destination = config_home() / WORKSPACE_CONFIG
+    atomic_write_json(destination, {"schema_version": 1, "workspace_root": str(resolved)})
+    destination.chmod(0o600)
+    return {"schema_version": 1, "workspace_root": str(resolved), "configuration": str(destination)}
 
 
 def _confine(path: Path, *, root: Path, allow_missing: bool) -> Path:
@@ -126,14 +159,22 @@ def _confine(path: Path, *, root: Path, allow_missing: bool) -> Path:
 
 def _normalize_path(tool: CommandTool, action: argparse.Action, value: str, arguments: dict[str, Any]) -> str:
     path = Path(value)
+    if tool.command_path == ("workspace", "select") and action.dest == "path":
+        resolved = path.resolve()
+        if not resolved.is_dir() or resolved.is_symlink():
+            raise ProjectError("workspace root must be an existing real directory")
+        return str(resolved)
     root = _workspace_root()
-    if action.dest == "controller_token_file":
+    if action.dest in {"controller_token_file", "publisher_token_file", "sites_auth_token_file"}:
         resolved = path.resolve()
         if not resolved.is_file() or resolved.is_symlink():
-            raise ProjectError("controller capability must be a regular file")
+            raise ProjectError("credential path must be a regular file")
         return str(resolved)
     allow_missing = tool.command_path[0] in {"init", "export", "zotero-bundle", "adapter"} or action.dest in {"output"}
-    return str(_confine(path, root=root, allow_missing=allow_missing))
+    resolved = _confine(path, root=root, allow_missing=allow_missing)
+    if action.dest == "project" and resolved.parent != root:
+        raise ProjectError("project must be an immediate child of the selected workspace root")
+    return str(resolved)
 
 
 def _argv(tool: CommandTool, arguments: dict[str, Any]) -> list[str]:

@@ -2329,6 +2329,7 @@ function failInitialLoad(error) {
 }
 
 async function loadState({announce = false} = {}) {
+  if (initialLoadComplete) setText(refreshState, "Updating…");
   const workspaceResponse = await fetch("/api/v1/workspace", {cache: "no-store"});
   if (!workspaceResponse.ok) throw new Error("Research workspace could not be loaded");
   const nextWorkspace = await workspaceResponse.json();
@@ -2348,7 +2349,10 @@ async function loadState({announce = false} = {}) {
   setText(document.getElementById("project-name"), workspaceOverview ? `${workspace.workspace_name} · ${workspace.projects.length} questions` : snapshot.project.name);
   const projectionState = snapshot.outline.dirty ? "Reconciliation required" : "Projection reconciled";
   setText(document.getElementById("outline-meta"), projectionState);
-  setText(refreshState, "Read from authoritative files");
+  const publication = snapshot.publication;
+  setText(refreshState, publication
+    ? `Live · revision ${publication.published_revision} · ${publication.produced_at}`
+    : "Read from authoritative files");
   renderPrimaryMap();
   renderActivity();
   renderInspector();
@@ -2361,7 +2365,7 @@ async function loadState({announce = false} = {}) {
 }
 
 async function pollCompletionSignal() {
-  const response = await fetch("/api/v1/completion", {cache: "no-store"});
+  const response = await fetch(projectApi("/api/v1/completion"), {cache: "no-store"});
   if (!response.ok) return;
   const signal = await response.json();
   const observed = signal && signal.schema_version === 1 && (signal.signal_id === null || /^sig_[0-9a-f]{32}$/.test(signal.signal_id))
@@ -2651,5 +2655,10 @@ loadState({announce: true})
 window.setInterval(() => pollCompletionSignal().catch(() => {}), 1000);
 window.setInterval(() => loadState().catch((error) => {
   if (!initialLoadComplete) failInitialLoad(error);
-  else setText(refreshState, "Refresh unavailable");
+  else {
+    const publication = snapshot && snapshot.publication;
+    setText(refreshState, publication
+      ? `Stale · last live revision ${publication.published_revision} · refresh failed`
+      : "Stale · refresh failed");
+  }
 }), 5000);

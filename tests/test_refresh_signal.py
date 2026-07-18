@@ -9,23 +9,18 @@ import sys
 from soleresearch.refresh import empty_refresh_signal, read_refresh_signal
 
 
-HOOK = (
-    Path(__file__).parents[1]
-    / "integrations/codex/soleresearch/hooks/notify_turn_complete.py"
-)
-HOOK_CONFIG = HOOK.with_name("hooks.json")
+PLUGIN = Path(__file__).parents[1] / "integrations/codex/soleresearch"
+HOOK_CONFIG = PLUGIN / "hooks/hooks.json"
 
 
 def _run_hook(
     signal_path: Path,
     payload: object,
-    *,
-    executable: str = sys.executable,
 ) -> subprocess.CompletedProcess[str]:
     environment = dict(os.environ)
     environment["SOLERESEARCH_REFRESH_SIGNAL"] = str(signal_path)
     return subprocess.run(
-        [executable, str(HOOK)],
+        [sys.executable, "-m", "soleresearch", "hook", "turn-complete"],
         input=json.dumps(payload),
         text=True,
         capture_output=True,
@@ -45,19 +40,18 @@ def test_plugin_declares_bounded_fail_safe_stop_hook() -> None:
     assert len(command_hook) == 1
     assert command_hook[0] == {
         "type": "command",
-        "command": 'python3 "$PLUGIN_ROOT/hooks/notify_turn_complete.py"',
-        "commandWindows": 'py -3 "%PLUGIN_ROOT%\\hooks\\notify_turn_complete.py"',
-        "timeout": 5,
+        "command": '"$PLUGIN_ROOT/bin/sole-research" hook turn-complete',
+        "commandWindows": '"%PLUGIN_ROOT%\\bin\\sole-research.exe" hook turn-complete',
+        "timeout": 35,
     }
 
 
-def test_hook_runs_with_python3_declared_by_plugin(tmp_path: Path) -> None:
+def test_hook_uses_packaged_native_runtime(tmp_path: Path) -> None:
     signal_path = tmp_path / "turn-complete.json"
 
     result = _run_hook(
         signal_path,
         {"hook_event_name": "Stop", "turn_id": "turn_fixture"},
-        executable="python3",
     )
 
     assert result.returncode == 0
