@@ -86,7 +86,7 @@ The plan's unrestricted/general-release definition is **not yet satisfied**.
 The remaining items are explicit and non-local: authenticated ChatGPT desktop
 built-in-browser QA; signed/notarized macOS and signed Windows artifacts;
 native builds and clean-machine tests for macOS x86_64, Windows x86_64, and
-Linux x86_64; authenticated built-in-browser QA; and publishing/testing two
-real immutable distribution releases. The current temporary credential files
+Linux x86_64; and publishing/testing two real immutable distribution releases.
+The current temporary credential files
 also do not survive a reboot unless the user explicitly authorizes durable
 secret storage.
