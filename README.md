@@ -14,27 +14,47 @@ Python or Node installation on the target machine.
 ## Try the transition locally
 
 The checked-in plugin currently includes the macOS arm64 standalone runtime.
-Select an explicit workspace root before installing it so the MCP server never
-scans outside the selected directory:
+The normal user path needs Codex, but does not need Python, Node, `uv`, `pnpm`,
+a tunnel, or a local web server. From the workspace that should contain your
+independent research-project directories, run:
 
 ```bash
 integrations/codex/soleresearch/bin/sole-research workspace select "$PWD"
 integrations/codex/soleresearch/bin/sole-research doctor
+integrations/codex/soleresearch/bin/sole-research site show
+codex plugin add soleresearch@personal
 ```
 
-For source development, the existing `uv` workflow remains available. Generate
-a private publisher token outside every research project and configure the same
-secret in the Site. An owner-only Site also needs its Sites dispatch-bypass
-token stored in a separate mode-0600 file:
+Start a new Codex thread after install so the task discovers the plugin skills
+and its standalone stdio MCP server. A useful first prompt is:
+
+```text
+Initialize a Sole Research project called local-demo and help me research:
+<your research question>
+```
+
+Codex performs authorized local workflow operations through named MCP tools and
+returns the selected project's owner-only Site URL. The Site is the primary
+read-only dashboard; it does not require `sole-research serve` or any process
+listening on localhost. Each independent question must use a different
+immediate-child project directory, and only one active writer thread may own a
+project.
+
+Publisher setup is a provisioning step, not a target runtime dependency. If a
+Site has not already been configured, generate a private publisher token
+outside every research project and configure the same secret in the Site. An
+owner-only Site also needs its Sites dispatch-bypass token stored in a separate
+mode-0600 file. The standalone commands below use the bundled binary; the
+equivalent `uv run sole-research ...` form is only for source development:
 
 ```bash
-openssl rand -hex -out "$HOME/.config/soleresearch/sites-publisher.token" 32
-chmod 600 "$HOME/.config/soleresearch/sites-publisher.token"
-uv run sole-research site configure \
+openssl rand -hex -out /ABSOLUTE/PRIVATE/PATH/sites-publisher.token 32
+chmod 600 /ABSOLUTE/PRIVATE/PATH/sites-publisher.token
+integrations/codex/soleresearch/bin/sole-research site configure \
   --url "https://YOUR-SITE" \
-  --publisher-token-file "$HOME/.config/soleresearch/sites-publisher.token" \
-  --sites-auth-token-file "$HOME/.config/soleresearch/sites-auth.token"
-uv run sole-research publish ./research-project
+  --publisher-token-file /ABSOLUTE/PRIVATE/PATH/sites-publisher.token \
+  --sites-auth-token-file /ABSOLUTE/PRIVATE/PATH/sites-auth.token
+integrations/codex/soleresearch/bin/sole-research publish ./research-project
 ```
 
 The configuration stores only the URL and credential-file locations; it never

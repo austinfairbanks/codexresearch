@@ -16,7 +16,7 @@ fallback.
 | Publication | Separate app and Sites-dispatch credentials, durable exact-retry outbox, bounded backoff, idempotency, stale/conflict checks, 20-revision D1 history |
 | Site | Owner-only production deployment, D1 persistence, read-only dashboard, complete project route contract, bounded collection paging, live revision polling |
 | MCP | Protocol handshake, strict named tools, catalog mapping, explicit workspace selection, immediate-child confinement |
-| Plugin | Personal-marketplace install, native hook, standalone macOS arm64 runtime, checksum, deterministic 28-package SPDX SBOM; no target Python, Node, `uv`, or `pnpm` |
+| Plugin | Personal-marketplace install/update/rollback/uninstall/reinstall canaries, native hook, standalone macOS arm64 runtime, checksum, deterministic 28-package SPDX SBOM; no target Python, Node, `uv`, or `pnpm` |
 | Compatibility | Existing CLI/HTTP dashboard retained; isolated native init/write/projection/MCP verification, 272 Python tests, and 4 Site tests pass |
 
 The private deployment is `https://sole-research.general992066.chatgpt.site`.
@@ -29,10 +29,11 @@ implementation.
   signing identities that are not present in this development environment.
 - macOS x86_64, Windows x86_64, and Linux x86_64 artifacts require builds and
   clean-machine tests on those hosts. The checked-in artifact is macOS arm64.
-- The current environment cannot attach an authenticated in-app browser to the
-  owner-only Site, so desktop side-by-side interaction and visual viewport QA
-  remain a manual release check. API isolation, live D1 publication, build-time
-  accessibility assertions, and local dashboard behavior are automated.
+- The Browser integration initializes, but this task reports no available
+  Browser instance to attach to the owner-only Site. Desktop side-by-side
+  interaction therefore remains a manual release check. API isolation, live D1
+  publication, local Chrome viewport QA, build-time accessibility assertions,
+  and local dashboard behavior are automated.
 - The Sites starter's released Next line currently carries a moderate build-time
   PostCSS advisory with no non-breaking npm remediation. Project content is not
   compiled as CSS; revisit when the supported starter updates its pinned
@@ -46,6 +47,8 @@ the current macOS arm64 workstation.
 ```bash
 integrations/codex/soleresearch/bin/sole-research workspace select "$PWD"
 integrations/codex/soleresearch/bin/sole-research doctor
+integrations/codex/soleresearch/bin/sole-research site show
+codex plugin add soleresearch@personal
 ```
 
 Start a new Codex thread after installing or updating the plugin so the new MCP

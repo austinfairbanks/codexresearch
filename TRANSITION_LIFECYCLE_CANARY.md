@@ -26,12 +26,22 @@ Site version: 4, owner-only production deployment
 8. Sent fail-closed production probes with bogus/revoked credential values.
    Both Sites access and snapshot publication returned HTTP 401, and the live
    project revision remained 7 before and after the probes.
+9. Registered a disposable local marketplace containing a copy of the plugin,
+   installed cachebuster version `0.2.0+codex.20260718200323`, updated it to
+   `0.2.0+codex.20260718202710`, and rolled it back to the original version.
+   Each install resolved to its versioned Codex cache path. The aggregate hash
+   of the independent demo project remained
+   `66777dbf06eaf69764cebaad08c59295b9deee8d63ec507aa698ff2181358495`
+   throughout. The canary plugin, marketplace registration, and temporary
+   copied source were removed afterward; the primary personal plugin remained
+   installed and enabled.
 
 ## Disposition
 
-Install, uninstall, reinstall/reconnection, data preservation, and revoked-
-credential rejection pass on the supported macOS arm64 developer-preview row.
-Rollback to a prior immutable plugin release remains a general-release gate
-until at least two pinned releases exist. Site deletion and real credential
+Install, update, rollback, uninstall, reinstall/reconnection, data
+preservation, and revoked-credential rejection pass on the supported macOS
+arm64 developer-preview row. The rollback mechanism is verified with two
+disposable local cachebuster versions; testing two real published immutable
+releases remains a distribution check. Site deletion and real credential
 rotation remain explicit human-controlled operations and are not part of an
 uninstall canary.

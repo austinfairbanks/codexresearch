@@ -23,13 +23,13 @@ Status meanings:
 | One writer thread per project; separate directories for separate questions | Verified | Project contract and plugin instructions enforce the operating rule. |
 | Publication failure cannot corrupt or roll back local research | Verified | Atomic local outbox, bounded retry, idempotency, and stale/conflict rejection in `src/soleresearch/projection.py`. |
 | Existing CLI and localhost dashboard remain available | Verified | Compatibility code and regression suite remain intact. |
-| Update or uninstall does not delete projects or the Site | Verified on macOS arm64 | The remove/reinstall canary preserved the plugin source, workspace, deployed Site, and byte-identical Application Support registries; the reinstalled standalone binary reconnected successfully. See `TRANSITION_LIFECYCLE_CANARY.md`. Prior-release rollback remains a release gate until two pinned releases exist. |
+| Update or uninstall does not delete projects or the Site | Verified on macOS arm64 | The personal-plugin remove/reinstall canary preserved the plugin source, workspace, deployed Site, and byte-identical Application Support registries. A disposable local marketplace also verified update and rollback while preserving the demo project byte-for-byte. See `TRANSITION_LIFECYCLE_CANARY.md`. |
 
 ## Gates A–F
 
 | Gate | Status | Evidence or remaining gate |
 | --- | --- | --- |
-| A — Sites and side-by-side viability | Partial | Owner-only Site deployed at `https://sole-research.general992066.chatgpt.site`; local Chrome QA covers wide, medium, responsive, and 200% rendering; dashboard tests cover interaction/state behavior. Direct authenticated ChatGPT built-in-browser and side-by-side testing is an external gate. The originally proposed disposable `spikes/` directory was superseded by the production-compatible private Site and was not retained as a separate artifact. |
+| A — Sites and side-by-side viability | Partial | Owner-only Site deployed at `https://sole-research.general992066.chatgpt.site`; local Chrome QA covers wide, medium, responsive, and 200% rendering; dashboard tests cover interaction/state behavior. The Browser integration initialized successfully in the implementation task, but discovery returned no available Browser instance. Direct authenticated ChatGPT built-in-browser and side-by-side testing is therefore an evidenced external gate. The originally proposed disposable `spikes/` directory was superseded by the production-compatible private Site and was not retained as a separate artifact. |
 | B — snapshot publication | Verified | Preferred authenticated live D1 path selected. Project-bound `POST /api/v1/projects/:projectId/snapshots`, atomic latest-revision advancement, bounded history, live revision polling, and successful production publication are verified. |
 | C — native workflow packaging | Verified for macOS arm64 | Frozen Python one-file runtime, embedded contracts, checksum, build metadata, SPDX SBOM, and isolated no-target-runtime verifier. Signing is tracked under Phase 5. |
 | D — supported platforms | External gate | Matrix is declared in `integrations/codex/soleresearch/release-platforms.json`. Only macOS arm64 is built and cleanly verified here; macOS x86_64, Windows x86_64, and Linux x86_64 need native hosts. |
@@ -61,7 +61,7 @@ Status meanings:
 | 3 — secure publication and refresh | Verified | Authenticated D1 ingest, exact retry, conflicts, outbox, bounded backoff, manual retry, history, polling, and project URL result are implemented and production-tested. |
 | 4 — complete MCP coverage | Verified | `src/soleresearch/contracts/v1/mcp_mapping.json` maps the authoritative catalog to strict named tools/compatibility commands; protocol, schemas, authority, errors, and stdout discipline are tested. |
 | 5 — native runtime | Partial / external gate | macOS arm64 standalone runtime, checksum, metadata, deterministic SPDX SBOM, and isolated init/write/projection/MCP verification pass without target Node or Python. Other platform artifacts, signing/notarization, Gatekeeper/SmartScreen/AV, and clean machines are external gates. |
-| 6 — plugin, Site, marketplaces | Partial | Personal marketplace install, cached native path, uninstall/data preservation, reinstall/reconnection, and revoked-credential rejection are live-verified; skills, named MCP configuration, optional hook, normal Site link, provisioning, recovery, and explicit deletion docs exist. Prior immutable release rollback and organization/repository distribution remain release checks. |
+| 6 — plugin, Site, marketplaces | Partial | Personal marketplace install, cached native path, update, rollback, uninstall/data preservation, reinstall/reconnection, and revoked-credential rejection are verified; skills, named MCP configuration, optional hook, normal Site link, provisioning, recovery, and explicit deletion docs exist. Publishing two real immutable releases and organization/repository distribution remain release checks. |
 | 7 — security and compatibility | Partial | Local/security boundaries, narrow Site access, inert rendering, project isolation, credential scrubbing, no tunnels, old projects, and localhost compatibility are verified. Cross-platform and built-in-browser compatibility rows remain external; automated release CI is intentionally out of scope. |
 
 ## Test matrix
@@ -73,7 +73,7 @@ Status meanings:
 | Live Site | Verified owner-only deployment, D1 publication, summary/revision reads, paged evidence, and project deep link. |
 | Dashboard visual QA | Verified locally at wide, medium, and high-density/200% layouts; narrow-toolbar overflow corrected. Built-in-browser manual QA remains external. |
 | Packaging | Verified on macOS arm64 with the isolated native verifier. Signing and remaining OS/architecture rows are external. |
-| Plugin lifecycle | Install, uninstall preservation, reinstall/reconnection, and revoked-credential rejection are verified on macOS arm64. Prior immutable release rollback remains partial. |
+| Plugin lifecycle | Install, update, rollback, uninstall preservation, reinstall/reconnection, cached-native launch, and revoked-credential rejection are verified on macOS arm64. The rollback canary used two disposable local cachebuster versions; rollback between two published releases remains a distribution check. |
 
 ## Definition-of-done disposition
 
@@ -86,6 +86,7 @@ The plan's unrestricted/general-release definition is **not yet satisfied**.
 The remaining items are explicit and non-local: authenticated ChatGPT desktop
 built-in-browser QA; signed/notarized macOS and signed Windows artifacts;
 native builds and clean-machine tests for macOS x86_64, Windows x86_64, and
-Linux x86_64; authenticated built-in-browser QA; and rollback to a prior pinned
-plugin release. The current temporary credential files also do not survive a reboot unless the user
-explicitly authorizes durable secret storage.
+Linux x86_64; authenticated built-in-browser QA; and publishing/testing two
+real immutable distribution releases. The current temporary credential files
+also do not survive a reboot unless the user explicitly authorizes durable
+secret storage.
