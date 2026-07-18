@@ -44,6 +44,30 @@ canonical research files. Inspect it with `sole-research publication status
 PROJECT`. The Site is permanently read-only and should remain at
 owner-only or the narrowest workspace access level that fits the project.
 
+## Plugin lifecycle and recovery
+
+The personal-marketplace install is explicit and does not own the selected
+workspace, its projects, the Application Support registries, or the deployed
+Site:
+
+```bash
+codex plugin add soleresearch@personal
+codex plugin remove soleresearch@personal
+```
+
+Removal deletes only Codex's installed plugin entry and cached plugin copy. It
+does not delete the marketplace source, local projects, Site deployment, or the
+nonsecret workspace/Site registries. Reinstall with `codex plugin add
+soleresearch@personal`, then start a new Codex thread. The standalone binary
+reconnects using the preserved registries and requires no target-machine Node,
+Python, `uv`, `pnpm`, tunnel, or manually started web server.
+
+To reconnect a different or recreated Site, run `sole-research site configure`
+again with the new URL and credential-file paths. Credential rotation/revocation
+and Site deletion are deliberately separate operations: rotate the Site-scoped
+publisher value and its local user-only file together, or explicitly delete the
+Site through Sites. Plugin uninstall never performs either action.
+
 Release builders can produce the standalone artifact, checksum manifest, and
 deterministic SPDX runtime inventory together and exercise them without a source
 checkout or language-runtime subprocess:
