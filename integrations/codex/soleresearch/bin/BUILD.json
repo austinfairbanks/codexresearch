@@ -4,7 +4,7 @@
   "architecture": "arm64",
   "python": "3.12.13",
   "packager": "pyinstaller 6.21.0",
-  "sha256": "e6cf6ac8de68fdc585a3d2d5d1165e922407849612cb1789956c5783dd65a1f2",
+  "sha256": "e710b90e1bd64533520e0545b2cfa57c20fd4387300101c5fd05c76664a44578",
   "signed": "ad-hoc",
   "verified_commands": ["--version", "workspace select/show", "site show/configure", "doctor PROJECT", "publication status PROJECT", "mcp initialize/tools-list"]
 }

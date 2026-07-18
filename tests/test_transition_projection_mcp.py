@@ -113,8 +113,8 @@ def test_site_configuration_persists_only_external_paths(tmp_path: Path, monkeyp
     )
     assert result["site_url"] == "https://example.chatgpt.site"
     stored = site_configuration()
-    assert stored["publisher_token_file"] == str(publisher)
-    assert stored["sites_auth_token_file"] == str(sites_auth)
+    assert stored["credential_files"] == "configured and validated"
+    assert "publisher_token_file" not in stored and "sites_auth_token_file" not in stored
     assert "a" * 64 not in json.dumps(stored)
 
 

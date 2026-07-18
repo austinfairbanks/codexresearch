@@ -26,10 +26,10 @@ MAX_PUBLISH_ATTEMPTS = 3
 SITE_CONFIG = "sites.json"
 
 
-def site_configuration() -> dict[str, Any]:
+def _site_configuration_record() -> dict[str, Any] | None:
     path = config_home() / SITE_CONFIG
     if not path.is_file() or path.is_symlink():
-        return {"schema_version": 1, "configured": False, "site_url": None}
+        return None
     value = read_json(path)
     required = {"schema_version", "site_url", "publisher_token_file", "sites_auth_token_file"}
     if not isinstance(value, dict) or set(value) != required or value.get("schema_version") != 1:
@@ -37,7 +37,20 @@ def site_configuration() -> dict[str, Any]:
     _publish_url(str(value["site_url"]))
     _publisher_token(Path(str(value["publisher_token_file"])))
     _publisher_token(Path(str(value["sites_auth_token_file"])))
-    return {**value, "configured": True, "configuration": str(path)}
+    return value
+
+
+def site_configuration() -> dict[str, Any]:
+    value = _site_configuration_record()
+    if value is None:
+        return {"schema_version": 1, "configured": False, "site_url": None}
+    return {
+        "schema_version": 1,
+        "configured": True,
+        "site_url": value["site_url"],
+        "credential_files": "configured and validated",
+        "configuration": str(config_home() / SITE_CONFIG),
+    }
 
 
 def configure_site(*, site_url: str, publisher_token_file: Path, sites_auth_token_file: Path) -> dict[str, Any]:
@@ -200,8 +213,8 @@ def publish_dashboard_projection(
     """Publish one immutable revision; local research remains committed on failure."""
     root = project_path.resolve()
     if site_url is None or publisher_token_file is None:
-        configured = site_configuration()
-        if not configured["configured"]:
+        configured = _site_configuration_record()
+        if configured is None:
             raise ProjectError("Site is not configured; provide publish options or run site configure")
         site_url = site_url or str(configured["site_url"])
         publisher_token_file = publisher_token_file or Path(str(configured["publisher_token_file"]))
