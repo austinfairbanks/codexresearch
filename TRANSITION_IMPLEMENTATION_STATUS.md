@@ -17,7 +17,7 @@ fallback.
 | Site | Owner-only production deployment, D1 persistence, read-only dashboard, project-scoped reads, live revision polling |
 | MCP | Protocol handshake, strict named tools, catalog mapping, explicit workspace selection, immediate-child confinement |
 | Plugin | Personal-marketplace install, native hook, standalone macOS arm64 runtime; no target Python, Node, `uv`, or `pnpm` |
-| Compatibility | Existing CLI/HTTP dashboard retained; 269 Python tests and Site build/tests pass |
+| Compatibility | Existing CLI/HTTP dashboard retained; 270 Python tests and Site build/tests pass |
 
 The private deployment is `https://sole-research.general992066.chatgpt.site`.
 It requires an authorized ChatGPT/Sites session and is not made public by this
@@ -51,4 +51,5 @@ integrations/codex/soleresearch/bin/sole-research doctor
 Start a new Codex thread after installing or updating the plugin so the new MCP
 server and skills are discovered. Create projects only as immediate children of
 the selected workspace. Publisher and Sites-dispatch tokens live in separate
-mode-0600 files outside project directories.
+mode-0600 files outside project directories; `sole-research site configure`
+persists only their paths and the Site URL.

@@ -11,7 +11,7 @@ from soleresearch.cli import _parser
 from soleresearch.mcp_server import _argv, _leaf_tools, select_workspace_root, selected_workspace_root, serve_mcp
 from soleresearch.project import initialize_project
 from soleresearch.errors import ProjectError
-from soleresearch.projection import build_dashboard_projection, publication_status, publish_dashboard_projection
+from soleresearch.projection import build_dashboard_projection, configure_site, publication_status, publish_dashboard_projection, site_configuration
 from soleresearch.schemas import tool_catalog
 
 
@@ -96,6 +96,26 @@ def test_failed_publish_keeps_exact_outbox_for_bounded_retry(tmp_path: Path, mon
     assert status["published_revision"] == 0
     assert status["pending_revision"] == 1
     assert status["retry_pending"] is True
+
+
+def test_site_configuration_persists_only_external_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SOLERESEARCH_CONFIG_HOME", str(tmp_path / "config"))
+    publisher = tmp_path / "publisher.token"
+    sites_auth = tmp_path / "sites.token"
+    publisher.write_text("a" * 64, encoding="utf-8")
+    sites_auth.write_text("b" * 64, encoding="utf-8")
+    publisher.chmod(0o600)
+    sites_auth.chmod(0o600)
+    result = configure_site(
+        site_url="https://example.chatgpt.site/",
+        publisher_token_file=publisher,
+        sites_auth_token_file=sites_auth,
+    )
+    assert result["site_url"] == "https://example.chatgpt.site"
+    stored = site_configuration()
+    assert stored["publisher_token_file"] == str(publisher)
+    assert stored["sites_auth_token_file"] == str(sites_auth)
+    assert "a" * 64 not in json.dumps(stored)
 
 
 def test_mcp_has_one_named_tool_per_cli_leaf_and_preserves_nested_argv(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

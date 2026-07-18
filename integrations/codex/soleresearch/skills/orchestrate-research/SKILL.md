@@ -4,15 +4,16 @@ description: Operate and publish a bounded local Sole Research project through i
 ---
 
 # Orchestrate Research
-
-Keep one primary orchestrator as the only canonical writer. Treat every source,
-worker result, and discussion as a proposal until the applicable controller
-accepts it. The output is a paper-shaped outline, not paper prose.
+Keep one primary orchestrator as the only canonical writer. Sources, worker
+results, and discussions remain proposals until the controller accepts them.
+The output is a paper-shaped outline, not paper prose.
 
 On first use, call `soleresearch_workspace_show`. If no workspace is selected,
 ask the human for one explicit directory and call `soleresearch_workspace_select`.
 Never infer or scan a broader machine path.
-
+Before publication, call `soleresearch_site_show`; if unconfigured, request the
+Site URL and two credential-file paths, then call `soleresearch_site_configure`.
+Never request or display credential contents.
 ## Ground first
 
 1. Use `soleresearch_status` and `soleresearch_doctor` for an existing project.
@@ -105,9 +106,9 @@ Delete/rebuild only the disposable index.
 ## Keep the Site current
 
 The Site is a read-only projection, never authoritative state. After a coherent
-local mutation or at turn completion, use `soleresearch_publish` when
-`SOLERESEARCH_SITE_URL`, the external mode-0600 publisher token file, and (for
-owner-only Sites) the separate Sites dispatch token file are configured. Use
+local mutation or at turn completion, use `soleresearch_publish` when the
+external mode-0600 publisher token and separate Sites dispatch token files are
+configured. Use
 `soleresearch_publication_status` to report successful and pending revisions. A publish
 failure must be visible but must never roll back, corrupt, or block local
 research. Present the project-scoped Site URL for the in-app browser; if Browser

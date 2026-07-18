@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 import httpx
 
 from soleresearch.errors import ProjectError
+from soleresearch.controller import config_home
 from soleresearch.project import load_project, utc_now
 from soleresearch.schemas import validate_document
 from soleresearch.storage import atomic_write_json, canonical_json, read_json
@@ -22,6 +23,45 @@ MAX_PROJECTION_BYTES = 2 * 1024 * 1024
 PUBLICATION_STATE = Path(".soleresearch/sites-publication.json")
 PUBLICATION_OUTBOX = Path(".soleresearch/sites-publication-outbox.json")
 MAX_PUBLISH_ATTEMPTS = 3
+SITE_CONFIG = "sites.json"
+
+
+def site_configuration() -> dict[str, Any]:
+    path = config_home() / SITE_CONFIG
+    if not path.is_file() or path.is_symlink():
+        return {"schema_version": 1, "configured": False, "site_url": None}
+    value = read_json(path)
+    required = {"schema_version", "site_url", "publisher_token_file", "sites_auth_token_file"}
+    if not isinstance(value, dict) or set(value) != required or value.get("schema_version") != 1:
+        raise ProjectError("invalid Sites configuration")
+    _publish_url(str(value["site_url"]))
+    _publisher_token(Path(str(value["publisher_token_file"])))
+    _publisher_token(Path(str(value["sites_auth_token_file"])))
+    return {**value, "configured": True, "configuration": str(path)}
+
+
+def configure_site(*, site_url: str, publisher_token_file: Path, sites_auth_token_file: Path) -> dict[str, Any]:
+    normalized_url = site_url.rstrip("/")
+    _publish_url(normalized_url)
+    publisher = publisher_token_file.resolve()
+    sites_auth = sites_auth_token_file.resolve()
+    _publisher_token(publisher)
+    _publisher_token(sites_auth)
+    path = config_home() / SITE_CONFIG
+    atomic_write_json(path, {
+        "schema_version": 1,
+        "site_url": normalized_url,
+        "publisher_token_file": str(publisher),
+        "sites_auth_token_file": str(sites_auth),
+    })
+    path.chmod(0o600)
+    return {
+        "schema_version": 1,
+        "configured": True,
+        "site_url": normalized_url,
+        "configuration": str(path),
+        "credentials": "external mode-0600 files",
+    }
 
 
 def _publication_state(root: Path) -> dict[str, Any]:
@@ -150,8 +190,8 @@ def _publish_url(site_url: str) -> str:
 def publish_dashboard_projection(
     project_path: Path,
     *,
-    site_url: str,
-    publisher_token_file: Path,
+    site_url: str | None = None,
+    publisher_token_file: Path | None = None,
     sites_auth_token_file: Path | None = None,
     thread_id: str = "unknown",
     transport: httpx.BaseTransport | None = None,
@@ -159,6 +199,13 @@ def publish_dashboard_projection(
 ) -> dict[str, Any]:
     """Publish one immutable revision; local research remains committed on failure."""
     root = project_path.resolve()
+    if site_url is None or publisher_token_file is None:
+        configured = site_configuration()
+        if not configured["configured"]:
+            raise ProjectError("Site is not configured; provide publish options or run site configure")
+        site_url = site_url or str(configured["site_url"])
+        publisher_token_file = publisher_token_file or Path(str(configured["publisher_token_file"]))
+        sites_auth_token_file = sites_auth_token_file or Path(str(configured["sites_auth_token_file"]))
     outbox_path = root / PUBLICATION_OUTBOX
     projection = read_json(outbox_path) if outbox_path.is_file() else next_dashboard_projection(root, thread_id=thread_id)
     validate_document("dashboard_projection", projection)

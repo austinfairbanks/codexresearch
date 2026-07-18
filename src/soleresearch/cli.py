@@ -18,7 +18,7 @@ from soleresearch.integrations import approve_adapter, generate_adapter, prepare
 from soleresearch.migrations import migrate_project
 from soleresearch.orchestration import RunRepository, validate_result_with_bundle
 from soleresearch.project import initialize_project, load_project, project_status, utc_now
-from soleresearch.projection import build_dashboard_projection, next_dashboard_projection, publication_status, publish_dashboard_projection
+from soleresearch.projection import build_dashboard_projection, configure_site, next_dashboard_projection, publication_status, publish_dashboard_projection, site_configuration
 from soleresearch.schemas import SCHEMA_VERSION, tool_catalog, validate_document
 from soleresearch.storage import atomic_write_json
 from soleresearch.sources import (
@@ -75,8 +75,8 @@ def _parser() -> argparse.ArgumentParser:
 
     publish = commands.add_parser("publish", help="publish one revision to a configured Sole Research Site")
     publish.add_argument("project", type=Path)
-    publish.add_argument("--site-url", required=True)
-    publish.add_argument("--publisher-token-file", required=True, type=Path)
+    publish.add_argument("--site-url")
+    publish.add_argument("--publisher-token-file", type=Path)
     publish.add_argument("--sites-auth-token-file", type=Path)
     publish.add_argument("--thread-id", default="unknown")
 
@@ -84,6 +84,14 @@ def _parser() -> argparse.ArgumentParser:
     publication_actions = publication.add_subparsers(dest="action", required=True)
     publication_status_parser = publication_actions.add_parser("status")
     publication_status_parser.add_argument("project", type=Path)
+
+    site = commands.add_parser("site", help="configure or inspect the owner-only Site publisher")
+    site_actions = site.add_subparsers(dest="action", required=True)
+    site_configure = site_actions.add_parser("configure")
+    site_configure.add_argument("--url", required=True)
+    site_configure.add_argument("--publisher-token-file", required=True, type=Path)
+    site_configure.add_argument("--sites-auth-token-file", required=True, type=Path)
+    site_actions.add_parser("show")
 
     serve = commands.add_parser("serve", help="serve the local outline-first web UI")
     serve.add_argument("project", type=Path)
@@ -761,6 +769,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         elif args.command == "publication":
             result = publication_status(args.project)
+        elif args.command == "site":
+            result = (
+                configure_site(
+                    site_url=args.url,
+                    publisher_token_file=args.publisher_token_file,
+                    sites_auth_token_file=args.sites_auth_token_file,
+                )
+                if args.action == "configure"
+                else site_configuration()
+            )
         elif args.command == "serve":
             token = read_controller_capability(args.controller_token_file) if args.edit else None
             serve_ui(

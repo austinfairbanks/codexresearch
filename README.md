@@ -30,13 +30,15 @@ token stored in a separate mode-0600 file:
 ```bash
 openssl rand -hex -out "$HOME/.config/soleresearch/sites-publisher.token" 32
 chmod 600 "$HOME/.config/soleresearch/sites-publisher.token"
-uv run sole-research publish ./research-project \
-  --site-url "https://YOUR-SITE" \
+uv run sole-research site configure \
+  --url "https://YOUR-SITE" \
   --publisher-token-file "$HOME/.config/soleresearch/sites-publisher.token" \
   --sites-auth-token-file "$HOME/.config/soleresearch/sites-auth.token"
+uv run sole-research publish ./research-project
 ```
 
-`publish` accepts plain HTTP only for loopback development. It keeps an exact
+The configuration stores only the URL and credential-file locations; it never
+copies either secret. `publish` accepts plain HTTP only for loopback development. It keeps an exact
 retry outbox and uses bounded backoff; a failed publish does not modify
 canonical research files. Inspect it with `sole-research publication status
 PROJECT`. The Site is permanently read-only and should remain at

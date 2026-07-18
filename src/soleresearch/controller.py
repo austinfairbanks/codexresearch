@@ -5,7 +5,7 @@ import hmac
 import json
 import os
 import secrets
-import tempfile
+import sys
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -33,10 +33,12 @@ def config_home() -> Path:
     xdg = os.environ.get("XDG_CONFIG_HOME", "").strip()
     if xdg:
         return (Path(xdg).expanduser() / "soleresearch").resolve()
-    # Sandboxed/headless installations may not expose a writable home config.
-    # The CLI reports this external path so operators can deliberately override it.
-    uid = str(os.getuid()) if hasattr(os, "getuid") else "user"
-    return (Path(tempfile.gettempdir()) / f"soleresearch-config-{uid}").resolve()
+    if sys.platform == "darwin":
+        return (Path.home() / "Library/Application Support/SoleResearch").resolve()
+    if os.name == "nt":
+        appdata = os.environ.get("APPDATA", "").strip()
+        return ((Path(appdata) if appdata else Path.home() / "AppData/Roaming") / "SoleResearch").resolve()
+    return (Path.home() / ".config/soleresearch").resolve()
 
 
 def capability_paths(project_id: str) -> dict[str, Path]:
