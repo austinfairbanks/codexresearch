@@ -654,8 +654,10 @@ Python runtime, explicit persistent workspace selection, one writer thread per
 project, an owner-only Site, and separate site-scoped application and Sites
 dispatch credentials. The deployed API retains the existing read-client routes
 (`/workspace`, `/state`, `/outline`, and `/completion`) so the same dashboard can
-run against localhost and Sites during the compatibility cycle; the sole browser-
-inaccessible write route is `/publish`.
+run against localhost and Sites during the compatibility cycle. The specified
+project routes and revision-bound collection cursors are also available; the
+sole browser-inaccessible write paths are the project-bound `/snapshots` route
+and its `/publish` compatibility alias.
 
 The implementation deliberately retains the HTTP dashboard and does not claim
 general-release completion for unsigned or untested platform artifacts. Current

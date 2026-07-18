@@ -576,3 +576,17 @@ def test_plugin_skills_are_concise_complete_and_contain_no_generated_credentials
     assert any("including the orchestrator" in limit for limit in operate["limits"])
     assert "mutates a Zotero" in (ZOTERO / "SKILL.md").read_text()
     assert hashlib.sha256((PLUGIN / ".codex-plugin/plugin.json").read_bytes()).hexdigest()
+
+
+def test_native_plugin_artifact_has_matching_checksum_and_runtime_sbom() -> None:
+    binary = PLUGIN / "bin/sole-research"
+    build = json.loads((PLUGIN / "bin/BUILD.json").read_text(encoding="utf-8"))
+    assert hashlib.sha256(binary.read_bytes()).hexdigest() == build["sha256"]
+    sbom_path = PLUGIN / "bin" / build["sbom"]
+    assert hashlib.sha256(sbom_path.read_bytes()).hexdigest() == build["sbom_sha256"]
+    sbom = json.loads(sbom_path.read_text(encoding="utf-8"))
+    assert sbom["spdxVersion"] == "SPDX-2.3"
+    packages = {item["name"]: item["versionInfo"] for item in sbom["packages"]}
+    assert packages["sole-research"] == "0.2.0"
+    assert {"CPython", "bibtexparser", "httpx", "pypdf", "trafilatura"} <= set(packages)
+    assert "pytest" not in packages and "pyinstaller" not in packages

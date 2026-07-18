@@ -1,0 +1,679 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "creationInfo": {
+    "comment": "Deterministic runtime dependency closure from uv.lock; platform binary contents are verified separately by checksum.",
+    "created": "1970-01-01T00:00:00Z",
+    "creators": [
+      "Tool: soleresearch-generate-sbom"
+    ]
+  },
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "https://soleresearch.local/spdx/ce8469fe1cc170e53d39ad35cdedfe21c589d83e41cebf202fb29ef8adc696d6",
+  "name": "sole-research-native-runtime",
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-Package-anyio",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/anyio/4.14.1/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/anyio@4.14.1",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "anyio",
+      "versionInfo": "4.14.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-babel",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/babel/2.18.0/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/babel@2.18.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "babel",
+      "versionInfo": "2.18.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-bibtexparser",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/bibtexparser/1.4.4/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/bibtexparser@1.4.4",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "bibtexparser",
+      "versionInfo": "1.4.4"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-certifi",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/certifi/2026.6.17/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/certifi@2026.6.17",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "certifi",
+      "versionInfo": "2026.6.17"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-charset-normalizer",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/charset-normalizer/3.4.9/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/charset-normalizer@3.4.9",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "charset-normalizer",
+      "versionInfo": "3.4.9"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-courlan",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/courlan/1.4.0/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/courlan@1.4.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "courlan",
+      "versionInfo": "1.4.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-dateparser",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/dateparser/1.4.1/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/dateparser@1.4.1",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "dateparser",
+      "versionInfo": "1.4.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-h11",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/h11/0.16.0/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/h11@0.16.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "h11",
+      "versionInfo": "0.16.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-htmldate",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/htmldate/1.10.0/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/htmldate@1.10.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "htmldate",
+      "versionInfo": "1.10.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-httpcore",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/httpcore/1.0.9/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/httpcore@1.0.9",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "httpcore",
+      "versionInfo": "1.0.9"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-httpx",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/httpx/0.28.1/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/httpx@0.28.1",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "httpx",
+      "versionInfo": "0.28.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-idna",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/idna/3.18/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/idna@3.18",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "idna",
+      "versionInfo": "3.18"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-justext",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/justext/3.0.2/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/justext@3.0.2",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "justext",
+      "versionInfo": "3.0.2"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-lxml",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/lxml/6.1.1/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/lxml@6.1.1",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "lxml",
+      "versionInfo": "6.1.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-pyparsing",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/pyparsing/3.3.2/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/pyparsing@3.3.2",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "pyparsing",
+      "versionInfo": "3.3.2"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-pypdf",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/pypdf/6.14.2/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/pypdf@6.14.2",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "pypdf",
+      "versionInfo": "6.14.2"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-python-dateutil",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/python-dateutil/2.9.0.post0/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/python-dateutil@2.9.0.post0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "python-dateutil",
+      "versionInfo": "2.9.0.post0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-pytz",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/pytz/2026.2/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/pytz@2026.2",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "pytz",
+      "versionInfo": "2026.2"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-regex",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/regex/2026.7.10/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/regex@2026.7.10",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "regex",
+      "versionInfo": "2026.7.10"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-six",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/six/1.17.0/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/six@1.17.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "six",
+      "versionInfo": "1.17.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-sole-research",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/sole-research@0.2.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "sole-research",
+      "versionInfo": "0.2.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-tld",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/tld/0.13.2/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/tld@0.13.2",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "tld",
+      "versionInfo": "0.13.2"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-trafilatura",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/trafilatura/2.1.0/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/trafilatura@2.1.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "trafilatura",
+      "versionInfo": "2.1.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-typing-extensions",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/typing-extensions/4.16.0/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/typing-extensions@4.16.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "typing-extensions",
+      "versionInfo": "4.16.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-tzdata",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/tzdata/2026.3/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/tzdata@2026.3",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "tzdata",
+      "versionInfo": "2026.3"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-tzlocal",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/tzlocal/5.4.4/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/tzlocal@5.4.4",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "tzlocal",
+      "versionInfo": "5.4.4"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-urllib3",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://pypi.org/project/urllib3/2.7.0/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/urllib3@2.7.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "name": "urllib3",
+      "versionInfo": "2.7.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-Python",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "https://www.python.org/downloads/release/python-31213/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:generic/cpython@3.12.13",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "PSF-2.0",
+      "licenseDeclared": "PSF-2.0",
+      "name": "CPython",
+      "versionInfo": "3.12.13"
+    }
+  ],
+  "relationships": [
+    {
+      "relatedSpdxElement": "SPDXRef-Package-sole-research",
+      "relationshipType": "DESCRIBES",
+      "spdxElementId": "SPDXRef-DOCUMENT"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-Python",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-sole-research"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-idna",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-anyio"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-typing-extensions",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-anyio"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-pyparsing",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-bibtexparser"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-babel",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-courlan"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-tld",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-courlan"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-urllib3",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-courlan"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-python-dateutil",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-dateparser"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-pytz",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-dateparser"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-regex",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-dateparser"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-tzlocal",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-dateparser"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-charset-normalizer",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-htmldate"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-dateparser",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-htmldate"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-lxml",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-htmldate"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-python-dateutil",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-htmldate"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-urllib3",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-htmldate"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-certifi",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-httpcore"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-h11",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-httpcore"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-anyio",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-httpx"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-certifi",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-httpx"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-httpcore",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-httpx"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-idna",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-httpx"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-lxml",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-justext"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-six",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-python-dateutil"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-bibtexparser",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-sole-research"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-httpx",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-sole-research"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-pypdf",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-sole-research"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-trafilatura",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-sole-research"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-certifi",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-trafilatura"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-charset-normalizer",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-trafilatura"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-courlan",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-trafilatura"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-htmldate",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-trafilatura"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-justext",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-trafilatura"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-lxml",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-trafilatura"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-urllib3",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-trafilatura"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-tzdata",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-tzlocal"
+    }
+  ],
+  "spdxVersion": "SPDX-2.3"
+}

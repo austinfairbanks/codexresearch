@@ -4,7 +4,16 @@
   "architecture": "arm64",
   "python": "3.12.13",
   "packager": "pyinstaller 6.21.0",
-  "sha256": "e710b90e1bd64533520e0545b2cfa57c20fd4387300101c5fd05c76664a44578",
+  "sha256": "f79292ea13b854e840ea59907fccb55d44f542a98ac7069138cca13825c77650",
+  "sbom": "SBOM.spdx.json",
+  "sbom_sha256": "9bb52bc80a76c5c9fbb325b283f288621a53d2f541ab3d1ba8de5bd07b5cf484",
   "signed": "ad-hoc",
-  "verified_commands": ["--version", "workspace select/show", "site show/configure", "doctor PROJECT", "publication status PROJECT", "mcp initialize/tools-list"]
+  "verified_commands": [
+    "--version",
+    "workspace select/show",
+    "site show/configure",
+    "doctor PROJECT",
+    "publication status PROJECT",
+    "mcp initialize/tools-list"
+  ]
 }

@@ -18,7 +18,9 @@ SOLERESEARCH_PUBLISH_TOKEN=replace-with-a-long-random-value npm run dev
 npm run build
 ```
 
-The Python publisher posts only to `/api/v1/publish`. Owner-only deployments
+The Python publisher posts to the project-bound
+`/api/v1/projects/<project-id>/snapshots` route; `/api/v1/publish` remains a
+compatibility alias. Owner-only deployments
 also require the separate Sites dispatch credential in the
 `OAI-Sites-Authorization` header. The route requires the site-scoped application
 secret, rejects projections over 2 MiB, verifies their content hash, rejects

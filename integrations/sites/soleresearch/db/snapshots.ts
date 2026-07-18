@@ -9,7 +9,12 @@ export type Projection = {
   content_sha256: string;
   published_revision: number;
   produced_at: string;
-  collections: Record<string, { total: number; included: number; truncated: boolean }>;
+  collections: Record<string, {
+    total: number;
+    included: number;
+    truncated: boolean;
+    cursor: null | { project_id: string; collection: string; published_revision: number; position: number; limit: number };
+  }>;
   truncated: boolean;
   outline: {
     hash: string;

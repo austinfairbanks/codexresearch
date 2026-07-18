@@ -18,11 +18,28 @@
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["total", "included", "truncated"],
+        "required": ["total", "included", "truncated", "cursor"],
         "properties": {
           "total": {"type": "integer", "minimum": 0},
           "included": {"type": "integer", "minimum": 0},
-          "truncated": {"type": "boolean"}
+          "truncated": {"type": "boolean"},
+          "cursor": {
+            "oneOf": [
+              {"type": "null"},
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["project_id", "collection", "published_revision", "position", "limit"],
+                "properties": {
+                  "project_id": {"type": "string", "pattern": "^prj_[0-9a-f]{32}$"},
+                  "collection": {"type": "string", "minLength": 1},
+                  "published_revision": {"type": "integer", "minimum": 1},
+                  "position": {"type": "integer", "minimum": 0},
+                  "limit": {"type": "integer", "minimum": 1, "maximum": 200}
+                }
+              }
+            ]
+          }
         }
       }
     },

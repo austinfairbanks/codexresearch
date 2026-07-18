@@ -44,7 +44,7 @@ async function validContentHash(projection: Projection, bodyText: string): Promi
   return actual === projection.content_sha256;
 }
 
-export async function POST(request: Request) {
+export async function publishSnapshot(request: Request, expectedProjectId: string | null = null) {
   const expected = runtimeEnv().SOLERESEARCH_PUBLISH_TOKEN;
   const authorization = request.headers.get("authorization") ?? "";
   const actual = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
@@ -63,6 +63,9 @@ export async function POST(request: Request) {
     return Response.json({ error: "invalid JSON" }, { status: 400 });
   }
   if (!validProjection(projection)) return Response.json({ error: "invalid projection contract" }, { status: 400 });
+  if (expectedProjectId !== null && projection.project_id !== expectedProjectId) {
+    return Response.json({ error: "project ID substitution rejected" }, { status: 409 });
+  }
   if (!(await validContentHash(projection, bodyText))) return Response.json({ error: "projection content hash mismatch" }, { status: 400 });
 
   const db = database();
@@ -98,4 +101,8 @@ export async function POST(request: Request) {
       .bind(projection.project_id),
   ]);
   return Response.json({ project_id: projection.project_id, published_revision: projection.published_revision, idempotent: false }, { status: 201 });
+}
+
+export async function POST(request: Request) {
+  return publishSnapshot(request);
 }

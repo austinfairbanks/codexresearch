@@ -12,12 +12,12 @@ fallback.
 
 | Area | Evidence |
 | --- | --- |
-| Projection | Versioned schema, canonical project/content hashes, 2 MiB bound, collection descriptors, redaction tests |
+| Projection | Versioned schema, canonical project/content hashes, 2 MiB bound, revision-bound collection cursor descriptors, redaction tests |
 | Publication | Separate app and Sites-dispatch credentials, durable exact-retry outbox, bounded backoff, idempotency, stale/conflict checks, 20-revision D1 history |
-| Site | Owner-only production deployment, D1 persistence, read-only dashboard, project-scoped reads, live revision polling |
+| Site | Owner-only production deployment, D1 persistence, read-only dashboard, complete project route contract, bounded collection paging, live revision polling |
 | MCP | Protocol handshake, strict named tools, catalog mapping, explicit workspace selection, immediate-child confinement |
-| Plugin | Personal-marketplace install, native hook, standalone macOS arm64 runtime; no target Python, Node, `uv`, or `pnpm` |
-| Compatibility | Existing CLI/HTTP dashboard retained; 270 Python tests and Site build/tests pass |
+| Plugin | Personal-marketplace install, native hook, standalone macOS arm64 runtime, checksum, deterministic 28-package SPDX SBOM; no target Python, Node, `uv`, or `pnpm` |
+| Compatibility | Existing CLI/HTTP dashboard retained; isolated native init/write/projection/MCP verification, 272 Python tests, and 4 Site tests pass |
 
 The private deployment is `https://sole-research.general992066.chatgpt.site`.
 It requires an authorized ChatGPT/Sites session and is not made public by this

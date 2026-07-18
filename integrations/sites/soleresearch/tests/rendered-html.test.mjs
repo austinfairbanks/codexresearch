@@ -36,8 +36,10 @@ test("build output contains Sites metadata, migrations, worker, and dashboard", 
 });
 
 test("publisher is authenticated, bounded, revision-safe, and browser routes stay read-only", async () => {
-  const [publisher, worker] = await Promise.all([
+  const [publisher, snapshotAlias, readApi, worker] = await Promise.all([
     readFile(new URL("app/api/v1/publish/route.ts", root), "utf8"),
+    readFile(new URL("app/api/v1/projects/[projectId]/snapshots/route.ts", root), "utf8"),
+    readFile(new URL("db/read-api.ts", root), "utf8"),
     readFile(new URL("worker/index.ts", root), "utf8"),
   ]);
   assert.match(publisher, /SOLERESEARCH_PUBLISH_TOKEN/);
@@ -47,5 +49,22 @@ test("publisher is authenticated, bounded, revision-safe, and browser routes sta
   assert.match(publisher, /projection content hash mismatch/);
   assert.match(publisher, /LIMIT 20/);
   assert.match(publisher, /crypto\.subtle\.digest/);
+  assert.match(publisher, /project ID substitution rejected/);
+  assert.match(snapshotAlias, /publishSnapshot\(request, projectId\)/);
+  assert.match(readApi, /cursor does not match the selected project revision/);
+  assert.match(readApi, /MAX_LIMIT = 200/);
   assert.doesNotMatch(worker, /PUT|PATCH|DELETE/);
+});
+
+test("provides every project-scoped route in the transition contract", async () => {
+  await Promise.all([
+    "app/projects/[projectId]/route.ts",
+    "app/api/v1/projects/[projectId]/summary/route.ts",
+    "app/api/v1/projects/[projectId]/graph/route.ts",
+    "app/api/v1/projects/[projectId]/sources/route.ts",
+    "app/api/v1/projects/[projectId]/evidence/route.ts",
+    "app/api/v1/projects/[projectId]/outline/route.ts",
+    "app/api/v1/projects/[projectId]/revision/route.ts",
+    "app/api/v1/projects/[projectId]/snapshots/route.ts",
+  ].map((path) => access(new URL(path, root))));
 });

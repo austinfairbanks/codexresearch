@@ -129,6 +129,13 @@ def build_dashboard_projection(
             "total": value.get("total", 0),
             "included": len(value.get("items", [])),
             "truncated": bool(value.get("truncated", False)),
+            "cursor": ({
+                "project_id": project["project_id"],
+                "collection": name,
+                "published_revision": published_revision,
+                "position": 0,
+                "limit": min(200, len(value.get("items", []))),
+            } if value.get("truncated", False) else None),
         }
         for name, value in views.items()
         if isinstance(value, dict) and isinstance(value.get("items"), list)
@@ -190,14 +197,15 @@ def _sites_auth_token(path: Path | None) -> str | None:
     return None if path is None else _publisher_token(path)
 
 
-def _publish_url(site_url: str) -> str:
+def _publish_url(site_url: str, project_id: str | None = None) -> str:
     parsed = urlsplit(site_url.strip())
     if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:
         raise ProjectError("site URL must be an absolute HTTP(S) URL without credentials")
     loopback = parsed.hostname in {"127.0.0.1", "::1", "localhost"}
     if parsed.scheme != "https" and not loopback:
         raise ProjectError("publisher requires HTTPS except for a loopback development Site")
-    return site_url.rstrip("/") + "/api/v1/publish"
+    suffix = f"/api/v1/projects/{project_id}/snapshots" if project_id is not None else "/api/v1/publish"
+    return site_url.rstrip("/") + suffix
 
 
 def publish_dashboard_projection(
@@ -237,7 +245,7 @@ def publish_dashboard_projection(
         for attempt in range(MAX_PUBLISH_ATTEMPTS):
             try:
                 response = client.post(
-                    _publish_url(site_url),
+                    _publish_url(site_url, str(projection["project_id"])),
                     headers=headers,
                     content=canonical_json(projection).encode("utf-8"),
                 )

@@ -44,6 +44,14 @@ canonical research files. Inspect it with `sole-research publication status
 PROJECT`. The Site is permanently read-only and should remain at
 owner-only or the narrowest workspace access level that fits the project.
 
+Release builders can produce the standalone artifact, checksum manifest, and
+deterministic SPDX runtime inventory together and exercise them without a source
+checkout or language-runtime subprocess:
+
+```bash
+uv run python scripts/build-native.py --output-dir artifacts --verify
+```
+
 The research graph is reviewable rather than conversationally implicit. Typed
 nodes and links are proposed as versioned diffs, only the orchestrator applies
 them, and each accepted change atomically updates the graph plus its clean

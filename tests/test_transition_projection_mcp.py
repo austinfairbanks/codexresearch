@@ -31,15 +31,41 @@ def test_projection_is_bounded_valid_and_contains_read_only_outline(tmp_path: Pa
     assert projection["outline"]["content"] == (project / "outline.md").read_text(encoding="utf-8")
     assert len(projection["project_revision"]) == 64
     assert len(projection["content_sha256"]) == 64
-    assert projection["collections"]["nodes"] == {"total": 0, "included": 0, "truncated": False}
+    assert projection["collections"]["nodes"] == {"total": 0, "included": 0, "truncated": False, "cursor": None}
     assert projection["truncated"] is False
     assert "controller" not in json.dumps(projection).casefold()
+
+
+def test_truncated_projection_descriptor_binds_cursor_to_project_revision(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SOLERESEARCH_CONFIG_HOME", str(tmp_path / "config"))
+    project = tmp_path / "project"
+    record = initialize_project(project)
+    monkeypatch.setattr(
+        "soleresearch.projection.ui_state",
+        lambda _root, now: {
+            "schema_version": 1,
+            "project": {"project_id": record["project_id"], "name": "Bounded", "data_policy": "public_only"},
+            "outline": {"hash": "sha256:" + "0" * 64, "dirty": False, "reconciliation_required": False},
+            "views": {"nodes": {"items": [{}] * 500, "total": 501, "truncated": True}},
+            "staleness": {},
+            "errors": [],
+        },
+    )
+    projection = build_dashboard_projection(project, published_revision=9)
+    assert projection["truncated"] is True
+    assert projection["collections"]["nodes"]["cursor"] == {
+        "project_id": record["project_id"],
+        "collection": "nodes",
+        "published_revision": 9,
+        "position": 0,
+        "limit": 200,
+    }
 
 
 def test_publish_is_revisioned_and_records_success_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SOLERESEARCH_CONFIG_HOME", str(tmp_path / "config"))
     project = tmp_path / "project"
-    initialize_project(project)
+    record = initialize_project(project)
     token = tmp_path / "publisher.token"
     token.write_text("a" * 64, encoding="utf-8")
     token.chmod(0o600)
@@ -49,6 +75,7 @@ def test_publish_is_revisioned_and_records_success_only(tmp_path: Path, monkeypa
     observed: list[dict[str, object]] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == f"/api/v1/projects/{record['project_id']}/snapshots"
         assert request.headers["authorization"] == "Bearer " + "a" * 64
         assert request.headers["oai-sites-authorization"] == "Bearer " + "b" * 64
         payload = json.loads(request.content)
