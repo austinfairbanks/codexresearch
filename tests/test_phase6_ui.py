@@ -443,6 +443,11 @@ def test_ui_redesign_has_semantic_hierarchy_and_local_design_system() -> None:
     assert "@media (max-width: 760px)" in css
     assert "@media (max-width: 480px)" in css
     assert "@media (prefers-reduced-motion: reduce)" in css
+    assert "body { max-width: 100%; overflow-x: hidden; }" in css
+    assert ".map-navigation { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; }" in css
+    assert ".map-toolbar-actions { width: 100%; min-width: 0; flex-wrap: wrap; justify-content: flex-start; }" in css
+    assert ".context-heading { display: flex; align-items: flex-start; flex-direction: column; }" in css
+    assert ".agent-activity-preview { overflow-wrap: anywhere;" in css
     assert "grid-template-columns: minmax(0, var(--split-position)) 12px minmax(0, 1fr)" in css
     assert ".split-divider" in css and "cursor: col-resize" in css
     assert ".inspector[hidden] { display: none; }" in css and "position: static" in css

@@ -178,6 +178,10 @@ button:disabled { cursor: default; opacity: .48; }
 
 .activity-copy { min-width: 0; }
 
+.activity-copy,
+.activity-detail,
+.activity-facts dd { overflow-wrap: anywhere; }
+
 .activity-indicator {
   width: 12px;
   height: 12px;
@@ -1976,7 +1980,9 @@ progress::-moz-progress-bar { border-radius: 999px; background: var(--forest); }
 }
 
 @media (max-width: 760px) {
-  body { height: auto; display: block; overflow: auto; }
+  html,
+  body { max-width: 100%; overflow-x: hidden; }
+  body { height: auto; display: block; overflow-y: auto; }
   .activity-rail { display: block; padding-inline: var(--space-4); }
   .activity-facts { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: var(--space-3); }
   .activity-facts div { min-width: 0; flex: 1; padding-inline: var(--space-2); }
@@ -1993,7 +1999,9 @@ progress::-moz-progress-bar { border-radius: 999px; background: var(--forest); }
   .draft-pane { border-top: 1px solid var(--line); }
   .map-workspace { display: block; }
   .map-canvas { height: 60dvh; min-height: 0; padding: 0; }
-  .map-navigation { align-items: center; }
+  .map-navigation { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+  .map-breadcrumb { width: 100%; }
+  .map-toolbar-actions { width: 100%; min-width: 0; flex-wrap: wrap; justify-content: flex-start; }
   .research-tools { width: min(370px, calc(100vw - var(--space-6))); }
   .map-breadcrumb { padding-top: var(--space-1); }
   .map-children { display: block; margin-top: var(--space-4); padding: 0 0 0 var(--space-4); border-top: 0; border-left: 1px solid var(--line-strong); }
@@ -2009,6 +2017,8 @@ progress::-moz-progress-bar { border-radius: 999px; background: var(--forest); }
 
 @media (max-width: 480px) {
   .workspace-heading { display: block; }
+  .context-heading { display: flex; align-items: flex-start; flex-direction: column; }
+  .context-tabs { max-width: 100%; }
   .workspace-meta { margin-top: var(--space-1); }
   .outline-preview,
   #outline-editor { padding: var(--space-6) var(--space-4); font-size: 1rem; }
@@ -2016,7 +2026,7 @@ progress::-moz-progress-bar { border-radius: 999px; background: var(--forest); }
   .tab { padding-inline: var(--space-3); }
   .activity-facts { display: grid; grid-template-columns: repeat(2, 1fr); }
   .activity-facts div { padding-block: var(--space-2); border-bottom: 1px solid var(--line); }
-  .agent-activity-preview { font-size: .625rem; }
+  .agent-activity-preview { overflow-wrap: anywhere; font-size: .625rem; white-space: normal; }
 }
 
 @media (prefers-reduced-motion: reduce) {
