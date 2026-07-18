@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "mapping": "argparse-leaf-v1",
+  "namespace": "soleresearch",
+  "tool_name_rule": "soleresearch_<command>_<action>",
+  "catalog_tools": {
+    "adapter.approve": ["soleresearch_adapter_approve"],
+    "adapter.generate": ["soleresearch_adapter_generate"],
+    "adapter.test": ["soleresearch_adapter_test"],
+    "core.diff": ["soleresearch_diff_list", "soleresearch_diff_show", "soleresearch_diff_propose", "soleresearch_diff_apply", "soleresearch_diff_conflicts", "soleresearch_diff_events"],
+    "core.discuss": ["soleresearch_discuss_list", "soleresearch_discuss_show", "soleresearch_discuss_add", "soleresearch_discuss_promote"],
+    "core.doctor": ["soleresearch_doctor"],
+    "core.evidence": ["soleresearch_evidence_list", "soleresearch_evidence_add"],
+    "core.export": ["soleresearch_export"],
+    "core.import": ["soleresearch_import"],
+    "core.init": ["soleresearch_init"],
+    "core.migrate": ["soleresearch_migrate"],
+    "core.rebuild-index": ["soleresearch_rebuild_index"],
+    "core.reconcile": ["soleresearch_reconcile"],
+    "core.scaffold": ["soleresearch_scaffold"],
+    "core.serve": [],
+    "core.source": ["soleresearch_source_list", "soleresearch_source_show", "soleresearch_source_queue", "soleresearch_source_read", "soleresearch_source_quality"],
+    "core.status": ["soleresearch_status"],
+    "core.tools": ["soleresearch_tools_list", "soleresearch_tools_show", "soleresearch_tools_validate_result"],
+    "core.zotero-bundle": ["soleresearch_zotero_bundle"],
+    "run.budget": ["soleresearch_budget_show", "soleresearch_budget_extend"],
+    "run.gate": ["soleresearch_gate_show", "soleresearch_gate_resolve", "soleresearch_gate_ratify", "soleresearch_gate_switch_controller", "soleresearch_gate_advance_cycle"],
+    "run.operate": ["soleresearch_run_start", "soleresearch_run_dispatch", "soleresearch_run_bundle_task", "soleresearch_run_import_result", "soleresearch_run_expire_leases", "soleresearch_run_cancel_task", "soleresearch_run_requeue_task", "soleresearch_run_pause", "soleresearch_run_finish", "soleresearch_run_checkpoint"],
+    "run.resume": ["soleresearch_resume"]
+  },
+  "compatibility_only": ["serve"],
+  "notes": [
+    "Every argparse leaf except the MCP server command is exposed as one named MCP tool.",
+    "The persistent local HTTP dashboard remains a direct compatibility command.",
+    "Project and artifact paths are confined to SOLERESEARCH_WORKSPACE_ROOT; controller capability files must be regular non-symlink files."
+  ]
+}

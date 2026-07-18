@@ -1,18 +1,22 @@
 {
   "name": "soleresearch",
-  "version": "0.1.0",
+  "version": "0.2.0+codex.20260718184533",
   "description": "Local evidence-to-outline research orchestration",
   "author": {
     "name": "Austin Fairbanks"
   },
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Soleresearch",
     "shortDescription": "Build inspectable evidence-first research outlines.",
     "longDescription": "Operate a bounded, files-first research workflow with exact-locator evidence, explicit gates, inspectable budgets, and portable outline/audit exports.",
     "developerName": "Austin Fairbanks",
     "category": "Productivity",
-    "capabilities": ["Interactive", "Write"],
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
     "defaultPrompt": [
       "Initialize and inspect a bounded research project.",
       "Continue this evidence-first outline at its next gate.",

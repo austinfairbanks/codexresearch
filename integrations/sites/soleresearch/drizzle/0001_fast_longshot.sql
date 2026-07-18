@@ -1,0 +1,1 @@
+CREATE INDEX `revisions_project_revision_idx` ON `revisions` (`project_id`,`published_revision`);

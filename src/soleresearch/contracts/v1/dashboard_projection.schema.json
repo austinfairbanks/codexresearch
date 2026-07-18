@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soleresearch.local/contracts/v1/dashboard_projection.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "projection_schema_version", "project_id", "thread_id", "project_revision", "published_revision", "produced_at", "outline", "state"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "projection_schema_version": {"const": "1.0.0"},
+    "project_id": {"type": "string", "pattern": "^prj_[0-9a-f]{32}$"},
+    "thread_id": {"type": "string", "minLength": 1, "maxLength": 200},
+    "project_revision": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "published_revision": {"type": "integer", "minimum": 1},
+    "produced_at": {"type": "string", "format": "date-time"},
+    "outline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hash", "dirty", "reconciliation_required", "content"],
+      "properties": {
+        "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "dirty": {"type": "boolean"},
+        "reconciliation_required": {"type": "boolean"},
+        "content": {"type": "string", "maxLength": 1048576}
+      }
+    },
+    "state": {"type": "object"}
+  }
+}

@@ -5,6 +5,40 @@ strict project contracts and deterministic commands for initializing, checking,
 importing sources, recording exact-locator evidence, exporting, and rebuilding
 the disposable SQLite index.
 
+The 0.2 transition adds an installable Codex plugin with a self-contained local
+MCP runtime and a private, read-only Codex Site. Research files remain the sole
+authority on disk; the Site receives only a bounded versioned projection and
+keeps revision history in managed D1 storage. The packaged runtime needs no
+Python or Node installation on the target machine.
+
+## Try the transition locally
+
+The checked-in plugin currently includes the macOS arm64 standalone runtime.
+Set an explicit workspace root before installing it so the MCP server never
+scans outside the selected directory:
+
+```bash
+export SOLERESEARCH_WORKSPACE_ROOT="$PWD"
+integrations/codex/soleresearch/bin/sole-research doctor
+```
+
+For source development, the existing `uv` workflow remains available. Generate
+a private publisher token outside every research project, configure the same
+secret in the Site, then publish a local project:
+
+```bash
+openssl rand -hex -out "$HOME/.config/soleresearch/sites-publisher.token" 32
+chmod 600 "$HOME/.config/soleresearch/sites-publisher.token"
+uv run sole-research publish ./research-project \
+  --site-url "https://YOUR-SITE" \
+  --publisher-token-file "$HOME/.config/soleresearch/sites-publisher.token"
+```
+
+`publish` accepts plain HTTP only for loopback development. A failed publish
+does not modify canonical research files; the next successful publication uses
+the next local revision. The Site is permanently read-only and should remain at
+owner-only or the narrowest workspace access level that fits the project.
+
 The research graph is reviewable rather than conversationally implicit. Typed
 nodes and links are proposed as versioned diffs, only the orchestrator applies
 them, and each accepted change atomically updates the graph plus its clean

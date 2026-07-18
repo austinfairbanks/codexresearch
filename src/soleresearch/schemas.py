@@ -37,6 +37,7 @@ SCHEMA_KINDS = (
     "adapter_manifest",
     "adapter_approval",
     "zotero_bundle_manifest",
+    "dashboard_projection",
 )
 
 CURRENT_SCHEMA_VERSIONS = {kind: (2 if kind == "outline_meta" else 1) for kind in SCHEMA_KINDS}

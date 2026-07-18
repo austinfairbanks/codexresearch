@@ -4,15 +4,19 @@ import json
 import os
 import re
 import tempfile
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+from soleresearch.storage import atomic_write_json
 
 
 REFRESH_SIGNAL_ENV = "SOLERESEARCH_REFRESH_SIGNAL"
 REFRESH_SIGNAL_SCHEMA_VERSION = 1
 MAX_REFRESH_SIGNAL_BYTES = 4096
 SIGNAL_ID_RE = re.compile(r"^sig_[0-9a-f]{32}$")
+MAX_HOOK_INPUT_BYTES = 65_536
 
 
 def refresh_signal_path() -> Path:
@@ -53,3 +57,34 @@ def read_refresh_signal(path: Path | None = None) -> dict[str, Any]:
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError):
         return empty_refresh_signal()
     return value
+
+
+def notify_turn_complete(raw: bytes) -> None:
+    """Best-effort hook signal and optional Sites publication; never controls a turn."""
+    if len(raw) > MAX_HOOK_INPUT_BYTES:
+        return
+    payload = json.loads(raw.decode("utf-8"))
+    if (
+        not isinstance(payload, dict)
+        or payload.get("hook_event_name") != "Stop"
+        or not isinstance(payload.get("turn_id"), str)
+        or not payload["turn_id"]
+    ):
+        return
+    atomic_write_json(refresh_signal_path(), {
+        "schema_version": REFRESH_SIGNAL_SCHEMA_VERSION,
+        "signal_id": "sig_" + uuid.uuid4().hex,
+        "completed_at": datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+    })
+    project = os.environ.get("SOLERESEARCH_PROJECT", "").strip()
+    site_url = os.environ.get("SOLERESEARCH_SITE_URL", "").strip()
+    token_file = os.environ.get("SOLERESEARCH_PUBLISHER_TOKEN_FILE", "").strip()
+    if project and site_url and token_file:
+        from soleresearch.projection import publish_dashboard_projection
+
+        publish_dashboard_projection(
+            Path(project),
+            site_url=site_url,
+            publisher_token_file=Path(token_file),
+            thread_id=payload["turn_id"],
+        )

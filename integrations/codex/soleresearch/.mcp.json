@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "soleresearch": {
+      "command": "./bin/sole-research",
+      "args": ["mcp"],
+      "cwd": ".",
+      "env_vars": ["SOLERESEARCH_WORKSPACE_ROOT", "SOLERESEARCH_CONFIG_HOME"]
+    }
+  }
+}

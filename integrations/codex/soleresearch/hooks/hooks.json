@@ -5,9 +5,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$PLUGIN_ROOT/hooks/notify_turn_complete.py\"",
-            "commandWindows": "py -3 \"%PLUGIN_ROOT%\\hooks\\notify_turn_complete.py\"",
-            "timeout": 5
+            "command": "\"$PLUGIN_ROOT/bin/sole-research\" hook turn-complete",
+            "commandWindows": "\"%PLUGIN_ROOT%\\bin\\sole-research.exe\" hook turn-complete",
+            "timeout": 35
           }
         ]
       }

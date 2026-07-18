@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Sole Research</title>
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body data-bootstrap="{&quot;schema_version&quot;:1,&quot;annotation_enabled&quot;:false,&quot;csrf_token&quot;:null}">
+  <a class="skip-link" href="#map-canvas">Skip to research map</a>
+
+  <div class="sr-only" aria-label="Workspace status">
+    <h1 id="project-name">Research project</h1>
+    <span id="mode-badge">Loading</span>
+    <span id="save-state">Loading…</span>
+    <span id="refresh-state">Not refreshed</span>
+  </div>
+
+  <section id="activity-rail" class="activity-rail" aria-label="Live research activity">
+    <div class="activity-overview">
+      <div class="activity-primary">
+        <span id="activity-indicator" class="activity-indicator" aria-hidden="true"></span>
+        <div class="activity-copy">
+          <div class="activity-context" aria-label="Current run context">
+            <span id="activity-run-state" class="activity-context-item">Run status —</span>
+            <span id="activity-cycle" class="activity-context-item">Cycle —</span>
+            <span id="activity-controller" class="activity-context-item">Controller —</span>
+          </div>
+          <p id="activity-status" class="activity-status">Connecting to authoritative state…</p>
+          <p id="activity-detail" class="activity-detail">Current assignments, blockers, and authoritative events will appear here.</p>
+        </div>
+      </div>
+      <dl class="activity-facts">
+        <div><dt>Task progress</dt><dd id="activity-progress">—</dd></div>
+        <div><dt>Research</dt><dd><span id="activity-sources">—</span> sources · <span id="activity-evidence">—</span> evidence</dd></div>
+      </dl>
+    </div>
+    <details id="agent-activity" class="agent-activity">
+      <summary class="agent-activity-summary">
+        <span class="agent-activity-label">Agent assignments</span>
+        <span id="activity-agent-preview" class="agent-activity-preview">Waiting for authoritative run data…</span>
+      </summary>
+      <div class="agent-activity-body">
+        <p id="activity-telemetry" class="agent-activity-telemetry">Task-level visibility · individual tool calls are not recorded</p>
+        <div id="activity-agent-list" class="activity-agent-list" aria-label="Current agent assignments">
+          <p class="agent-activity-empty">Waiting for authoritative run data…</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <main class="workbench">
+    <div class="split-workspace">
+      <section class="map-pane" aria-label="Research map">
+        <div id="map-workspace" class="map-workspace">
+          <div class="map-navigation">
+            <nav id="map-breadcrumb" class="map-breadcrumb" aria-label="Focused research path"></nav>
+            <div class="map-toolbar-actions">
+              <details class="map-find">
+                <summary>Find</summary>
+                <div class="research-tools" role="search" aria-label="Find and filter research map">
+                  <label class="sr-only" for="research-search">Find claims or linked sources</label>
+                  <input id="research-search" type="search" placeholder="Find claims or linked sources" autocomplete="off">
+                  <label class="sr-only" for="coverage-filter">Filter by research coverage</label>
+                  <select id="coverage-filter">
+                    <option value="all">All coverage</option>
+                    <option value="linked">Evidence linked</option>
+                    <option value="unlinked">No evidence</option>
+                    <option value="open_gap">Open gaps</option>
+                    <option value="conflict">Conflicts</option>
+                  </select>
+                  <span id="research-match-count" class="research-match-count" aria-live="polite"></span>
+                </div>
+              </details>
+              <div class="map-zoom-controls" role="group" aria-label="Map zoom controls">
+                <button id="map-back" type="button" disabled>Back</button>
+                <button id="map-zoom-out" type="button" aria-label="Zoom map out">−</button>
+                <button id="map-fit" type="button">Fit</button>
+                <button id="map-zoom-in" type="button" aria-label="Zoom map in">+</button>
+              </div>
+            </div>
+          </div>
+          <div id="map-canvas" class="map-canvas" role="region" aria-label="Connected research map" tabindex="-1">
+            <p class="outline-loading">Loading authoritative research graph…</p>
+          </div>
+        </div>
+
+      </section>
+
+      <div id="split-divider" class="split-divider" role="separator" aria-label="Resize research map and context panes" aria-orientation="vertical" aria-valuemin="22" aria-valuemax="78" aria-valuenow="50" tabindex="0"></div>
+
+      <section class="draft-pane context-pane" aria-labelledby="context-label">
+        <header class="workspace-heading context-heading">
+          <div>
+            <p class="workspace-kicker">Linked context</p>
+            <h2 id="context-label">Research context</h2>
+          </div>
+          <nav class="context-tabs" role="tablist" aria-label="Research context view">
+            <button type="button" id="context-tab-draft" class="context-tab active" role="tab" aria-selected="true" aria-controls="draft-workspace" tabindex="0" data-context-view="draft">Draft</button>
+            <button type="button" id="context-tab-inspect" class="context-tab" role="tab" aria-selected="false" aria-controls="research-inspector" tabindex="-1" data-context-view="inspect">Inspect</button>
+          </nav>
+        </header>
+        <div id="draft-workspace" class="draft-workspace" role="tabpanel" aria-labelledby="context-tab-draft" tabindex="0">
+          <p id="outline-meta" class="workspace-meta context-meta"></p>
+          <div id="outline-preview" class="outline-preview" role="document" aria-label="Readable research outline" tabindex="-1">
+            <p class="outline-loading">Loading authoritative outline…</p>
+          </div>
+          <details id="canonical-outline" class="canonical-outline">
+            <summary id="canonical-summary">View canonical AI-authored outline</summary>
+            <p class="canonical-note">Read-only source of truth. Give direction through the connected agent chat; recorded turns remain visible in Inspect.</p>
+            <div class="editor-layer">
+              <textarea id="outline-editor" spellcheck="true" aria-label="Canonical anchored research outline" readonly></textarea>
+            </div>
+          </details>
+        </div>
+        <aside id="research-inspector" class="inspector" role="tabpanel" aria-labelledby="context-tab-inspect" tabindex="0" hidden>
+          <div class="inspector-heading">
+            <div>
+              <p class="workspace-kicker">Selected context</p>
+              <h2>Research inspector</h2>
+            </div>
+          </div>
+          <nav class="tabs" role="tablist" aria-label="Inspector views">
+            <button type="button" id="tab-map" class="tab active" role="tab" aria-selected="true" aria-controls="panel-map" tabindex="0" data-view="map">Overview</button>
+            <button type="button" id="tab-evidence" class="tab" role="tab" aria-selected="false" aria-controls="panel-evidence" tabindex="-1" data-view="evidence">Evidence</button>
+            <button type="button" id="tab-discussions" class="tab" role="tab" aria-selected="false" aria-controls="panel-discussions" tabindex="-1" data-view="discussions">Notes</button>
+          </nav>
+          <details id="inspector-more" class="inspector-more">
+            <summary>Activity &amp; history</summary>
+            <nav class="inspector-secondary-tabs" role="tablist" aria-label="Operational inspector views">
+              <button type="button" id="tab-runs" class="tab" role="tab" aria-selected="false" aria-controls="panel-runs" tabindex="0" data-view="runs">Activity</button>
+              <button type="button" id="tab-audit" class="tab" role="tab" aria-selected="false" aria-controls="panel-audit" tabindex="-1" data-view="audit">History</button>
+            </nav>
+          </details>
+          <section id="panel-map" class="inspector-content" role="tabpanel" aria-labelledby="tab-map" tabindex="0"></section>
+          <section id="panel-evidence" class="inspector-content" role="tabpanel" aria-labelledby="tab-evidence" tabindex="0" hidden></section>
+          <section id="panel-discussions" class="inspector-content" role="tabpanel" aria-labelledby="tab-discussions" tabindex="0" hidden></section>
+          <section id="panel-runs" class="inspector-content" role="tabpanel" aria-labelledby="tab-runs" tabindex="0" hidden></section>
+          <section id="panel-audit" class="inspector-content" role="tabpanel" aria-labelledby="tab-audit" tabindex="0" hidden></section>
+        </aside>
+      </section>
+    </div>
+  </main>
+
+  <p id="live-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+
+  <script src="/assets/layout.js"></script>
+  <script src="/assets/app.js"></script>
+</body>
+</html>

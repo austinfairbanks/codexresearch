@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from typing import Any, Sequence
 
+from soleresearch import __version__
 from soleresearch.errors import SoleResearchError
 from soleresearch.evidence import EvidenceRepository, locate_excerpt, locator
 from soleresearch.exporting import export_project
@@ -17,6 +18,7 @@ from soleresearch.integrations import approve_adapter, generate_adapter, prepare
 from soleresearch.migrations import migrate_project
 from soleresearch.orchestration import RunRepository, validate_result_with_bundle
 from soleresearch.project import initialize_project, load_project, project_status, utc_now
+from soleresearch.projection import build_dashboard_projection, next_dashboard_projection, publish_dashboard_projection
 from soleresearch.schemas import SCHEMA_VERSION, tool_catalog, validate_document
 from soleresearch.storage import atomic_write_json
 from soleresearch.sources import (
@@ -37,8 +39,12 @@ def _parser() -> argparse.ArgumentParser:
         prog="sole-research",
         description="Local-first evidence-to-outline research workbench",
     )
-    parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
+
+    commands.add_parser("mcp", help="serve the complete bounded workflow over stdio MCP")
+    hook = commands.add_parser("hook", help="run packaged lifecycle hook helpers")
+    hook.add_argument("action", choices=("turn-complete",))
 
     init = commands.add_parser("init", help="atomically initialize a research project")
     init.add_argument("project", type=Path)
@@ -55,6 +61,18 @@ def _parser() -> argparse.ArgumentParser:
     status = commands.add_parser("status", help="report authoritative project counts")
     status.add_argument("project", type=Path)
     status.add_argument("--run-id")
+
+    projection = commands.add_parser("projection", help="build the bounded read-only Sites projection")
+    projection.add_argument("project", type=Path)
+    projection.add_argument("--thread-id", default="unknown")
+    projection.add_argument("--published-revision", type=int)
+    projection.add_argument("--output", type=Path)
+
+    publish = commands.add_parser("publish", help="publish one revision to a configured Sole Research Site")
+    publish.add_argument("project", type=Path)
+    publish.add_argument("--site-url", required=True)
+    publish.add_argument("--publisher-token-file", required=True, type=Path)
+    publish.add_argument("--thread-id", default="unknown")
 
     serve = commands.add_parser("serve", help="serve the local outline-first web UI")
     serve.add_argument("project", type=Path)
@@ -675,6 +693,19 @@ def main(argv: Sequence[str] | None = None) -> int:
                     name: str(path) for name, path in capability_paths(document["project_id"]).items()
                 },
             }
+        elif args.command == "mcp":
+            from soleresearch.mcp_server import serve_mcp
+
+            return serve_mcp(_parser)
+        elif args.command == "hook":
+            from soleresearch.refresh import MAX_HOOK_INPUT_BYTES, notify_turn_complete
+
+            try:
+                notify_turn_complete(sys.stdin.buffer.read(MAX_HOOK_INPUT_BYTES + 1))
+            except Exception:
+                pass
+            sys.stdout.write('{"continue":true}\n')
+            return 0
         elif args.command == "doctor":
             result = _doctor(args.project)
             if not result["ok"]:
@@ -682,6 +713,32 @@ def main(argv: Sequence[str] | None = None) -> int:
                 return 1
         elif args.command == "status":
             result = RunRepository(args.project, args.run_id).status() if args.run_id else project_status(args.project)
+        elif args.command == "projection":
+            result = (
+                build_dashboard_projection(
+                    args.project,
+                    published_revision=args.published_revision,
+                    thread_id=args.thread_id,
+                )
+                if args.published_revision is not None
+                else next_dashboard_projection(args.project, thread_id=args.thread_id)
+            )
+            if args.output is not None:
+                atomic_write_json(args.output, result)
+                result = {
+                    "schema_version": SCHEMA_VERSION,
+                    "output": str(args.output.resolve()),
+                    "project_id": result["project_id"],
+                    "project_revision": result["project_revision"],
+                    "published_revision": result["published_revision"],
+                }
+        elif args.command == "publish":
+            result = publish_dashboard_projection(
+                args.project,
+                site_url=args.site_url,
+                publisher_token_file=args.publisher_token_file,
+                thread_id=args.thread_id,
+            )
         elif args.command == "serve":
             token = read_controller_capability(args.controller_token_file) if args.edit else None
             serve_ui(

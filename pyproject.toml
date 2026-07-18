@@ -1,6 +1,6 @@
 [project]
 name = "sole-research"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local-first evidence-to-outline research workbench"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -15,7 +15,10 @@ dependencies = [
 sole-research = "soleresearch.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8,<9"]
+dev = [
+    "pyinstaller>=6.21.0",
+    "pytest>=8,<9",
+]
 
 [build-system]
 requires = ["hatchling"]

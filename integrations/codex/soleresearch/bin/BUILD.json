@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "platform": "macos",
+  "architecture": "arm64",
+  "python": "3.12.13",
+  "packager": "pyinstaller 6.21.0",
+  "sha256": "0ad8e2940ef8aabc6542c1a9c84e60b9b0106ea31a26dbc401261bf7d7604479",
+  "signed": "ad-hoc",
+  "verified_commands": ["--version", "doctor PROJECT", "mcp initialize"]
+}
