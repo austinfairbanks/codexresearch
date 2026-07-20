@@ -1,10 +1,10 @@
 # Codex Plugin + Sites Transition Status
 
-Status date: 2026-07-18
+Status date: 2026-07-20
 
 The transition is implemented as a macOS arm64 developer preview. The local
 files remain authoritative, the installed Codex plugin launches a standalone
-stdio MCP process, and the owner-only Site stores bounded read-only projections
+stdio MCP process, and the public Site stores bounded read-only projections
 in D1. The existing localhost dashboard remains available as the compatibility
 fallback.
 
@@ -13,15 +13,14 @@ fallback.
 | Area | Evidence |
 | --- | --- |
 | Projection | Versioned schema, canonical project/content hashes, 2 MiB bound, revision-bound collection cursor descriptors, redaction tests |
-| Publication | Separate app and Sites-dispatch credentials, durable exact-retry outbox, bounded backoff, idempotency, stale/conflict checks, 20-revision D1 history |
-| Site | Owner-only production deployment, D1 persistence, read-only dashboard, complete project route contract, bounded collection paging, live revision polling |
+| Publication | Write-only app credential, durable exact-retry outbox, bounded backoff, idempotency, stale/conflict checks, 20-revision D1 history, and a `public_only` publication gate |
+| Site | Public production deployment, no viewer authentication, D1 persistence, read-only dashboard, complete project route contract, bounded collection paging, live revision polling |
 | MCP | Protocol handshake, strict named tools, catalog mapping, explicit workspace selection, immediate-child confinement |
 | Plugin | Personal-marketplace install/update/rollback/uninstall/reinstall canaries, native hook, standalone macOS arm64 runtime, checksum, deterministic 28-package SPDX SBOM; no target Python, Node, `uv`, or `pnpm` |
-| Compatibility | Existing CLI/HTTP dashboard retained; isolated native init/write/projection/MCP verification, 272 Python tests, and 4 Site tests pass |
+| Compatibility | Existing CLI/HTTP dashboard retained; isolated native init/write/projection/MCP verification, 274 Python tests, and 5 Site tests pass |
 
-The private deployment is `https://sole-research.general992066.chatgpt.site`.
-It requires an authorized ChatGPT/Sites session and is not made public by this
-implementation.
+The public deployment is `https://sole-research.general992066.chatgpt.site`.
+Anyone with the URL may view it; only the local publisher can upload revisions.
 
 ## External release gates still required
 
@@ -30,7 +29,7 @@ implementation.
 - macOS x86_64, Windows x86_64, and Linux x86_64 artifacts require builds and
   clean-machine tests on those hosts. The checked-in artifact is macOS arm64.
 - The Browser integration initializes, but this task reports no available
-  Browser instance to attach to the owner-only Site. Desktop side-by-side
+  Browser instance to attach to the Site. Desktop side-by-side
   interaction therefore remains a manual release check. API isolation, live D1
   publication, local Chrome viewport QA, build-time accessibility assertions,
   and local dashboard behavior are automated.
@@ -53,6 +52,6 @@ codex plugin add soleresearch@personal
 
 Start a new Codex thread after installing or updating the plugin so the new MCP
 server and skills are discovered. Create projects only as immediate children of
-the selected workspace. Publisher and Sites-dispatch tokens live in separate
-mode-0600 files outside project directories; `sole-research site configure`
-persists only their paths and the Site URL.
+the selected workspace. The publisher token lives in a mode-0600 file outside
+project directories; `sole-research site configure` persists only its path and
+the Site URL. The dashboard itself has no credential workflow.

@@ -69,15 +69,12 @@ def test_publish_is_revisioned_and_records_success_only(tmp_path: Path, monkeypa
     token = tmp_path / "publisher.token"
     token.write_text("a" * 64, encoding="utf-8")
     token.chmod(0o600)
-    sites_token = tmp_path / "sites.token"
-    sites_token.write_text("b" * 64, encoding="utf-8")
-    sites_token.chmod(0o600)
     observed: list[dict[str, object]] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.url.path == f"/api/v1/projects/{record['project_id']}/snapshots"
         assert request.headers["authorization"] == "Bearer " + "a" * 64
-        assert request.headers["oai-sites-authorization"] == "Bearer " + "b" * 64
+        assert "oai-sites-authorization" not in request.headers
         payload = json.loads(request.content)
         observed.append(payload)
         return httpx.Response(201, json={"published_revision": payload["published_revision"], "idempotent": False})
@@ -86,7 +83,6 @@ def test_publish_is_revisioned_and_records_success_only(tmp_path: Path, monkeypa
         project,
         site_url="http://127.0.0.1:3000",
         publisher_token_file=token,
-        sites_auth_token_file=sites_token,
         transport=httpx.MockTransport(handler),
     )
     assert result["published_revision"] == 1
@@ -128,21 +124,46 @@ def test_failed_publish_keeps_exact_outbox_for_bounded_retry(tmp_path: Path, mon
 def test_site_configuration_persists_only_external_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SOLERESEARCH_CONFIG_HOME", str(tmp_path / "config"))
     publisher = tmp_path / "publisher.token"
-    sites_auth = tmp_path / "sites.token"
     publisher.write_text("a" * 64, encoding="utf-8")
-    sites_auth.write_text("b" * 64, encoding="utf-8")
     publisher.chmod(0o600)
-    sites_auth.chmod(0o600)
     result = configure_site(
         site_url="https://example.chatgpt.site/",
         publisher_token_file=publisher,
-        sites_auth_token_file=sites_auth,
     )
     assert result["site_url"] == "https://example.chatgpt.site"
     stored = site_configuration()
-    assert stored["credential_files"] == "configured and validated"
-    assert "publisher_token_file" not in stored and "sites_auth_token_file" not in stored
+    assert stored["publishing_credential"] == "configured and validated"
+    assert stored["dashboard_access"] == "public read-only"
+    assert "publisher_token_file" not in stored
     assert "a" * 64 not in json.dumps(stored)
+
+
+def test_legacy_private_site_configuration_ignores_removed_viewer_credential(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = tmp_path / "config"
+    monkeypatch.setenv("SOLERESEARCH_CONFIG_HOME", str(config))
+    publisher = tmp_path / "publisher.token"
+    publisher.write_text("a" * 64, encoding="utf-8")
+    publisher.chmod(0o600)
+    config.mkdir()
+    (config / "sites.json").write_text(json.dumps({
+        "schema_version": 1,
+        "site_url": "https://example.chatgpt.site",
+        "publisher_token_file": str(publisher),
+        "sites_auth_token_file": str(tmp_path / "deleted-viewer-token"),
+    }), encoding="utf-8")
+    assert site_configuration()["dashboard_access"] == "public read-only"
+
+
+def test_private_project_cannot_be_projected_to_public_dashboard(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SOLERESEARCH_CONFIG_HOME", str(tmp_path / "config"))
+    project = tmp_path / "project"
+    initialize_project(project, data_policy="local_private")
+    with pytest.raises(ProjectError, match="only public_only projects"):
+        build_dashboard_projection(project, published_revision=1)
 
 
 def test_mcp_has_one_named_tool_per_cli_leaf_and_preserves_nested_argv(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

@@ -6,7 +6,7 @@ importing sources, recording exact-locator evidence, exporting, and rebuilding
 the disposable SQLite index.
 
 The 0.2 transition adds an installable Codex plugin with a self-contained local
-MCP runtime and a private, read-only Codex Site. Research files remain the sole
+MCP runtime and a public, read-only Codex Site. Research files remain the sole
 authority on disk; the Site receives only a bounded versioned projection and
 keeps revision history in managed D1 storage. The packaged runtime needs no
 Python or Node installation on the target machine.
@@ -34,26 +34,27 @@ Initialize a Sole Research project called local-demo and help me research:
 ```
 
 Codex performs authorized local workflow operations through named MCP tools and
-returns the selected project's owner-only Site URL. The Site is the primary
+returns the selected project's public Site URL. The Site is the primary
 read-only dashboard; it does not require `sole-research serve` or any process
 listening on localhost. Each independent question must use a different
 immediate-child project directory, and only one active writer thread may own a
-project.
+project. Because the dashboard is public, only projects initialized with
+`--data-policy public_only` may be published.
 
 Publisher setup is a provisioning step, not a target runtime dependency. If a
 Site has not already been configured, generate a private publisher token
-outside every research project and configure the same secret in the Site. An
-owner-only Site also needs its Sites dispatch-bypass token stored in a separate
-mode-0600 file. The standalone commands below use the bundled binary; the
-equivalent `uv run sole-research ...` form is only for source development:
+outside every research project and configure the same secret in the Site. This
+credential protects only the write-only snapshot endpoint; dashboard visitors
+never receive or enter it. The standalone commands below use the bundled
+binary; the equivalent `uv run sole-research ...` form is only for source
+development:
 
 ```bash
 openssl rand -hex -out /ABSOLUTE/PRIVATE/PATH/sites-publisher.token 32
 chmod 600 /ABSOLUTE/PRIVATE/PATH/sites-publisher.token
 integrations/codex/soleresearch/bin/sole-research site configure \
   --url "https://YOUR-SITE" \
-  --publisher-token-file /ABSOLUTE/PRIVATE/PATH/sites-publisher.token \
-  --sites-auth-token-file /ABSOLUTE/PRIVATE/PATH/sites-auth.token
+  --publisher-token-file /ABSOLUTE/PRIVATE/PATH/sites-publisher.token
 integrations/codex/soleresearch/bin/sole-research publish ./research-project
 ```
 
@@ -61,8 +62,13 @@ The configuration stores only the URL and credential-file locations; it never
 copies either secret. `publish` accepts plain HTTP only for loopback development. It keeps an exact
 retry outbox and uses bounded backoff; a failed publish does not modify
 canonical research files. Inspect it with `sole-research publication status
-PROJECT`. The Site is permanently read-only and should remain at
-owner-only or the narrowest workspace access level that fits the project.
+PROJECT`. The Site is permanently read-only and publicly accessible to anyone
+with its URL. Use the localhost compatibility dashboard instead for projects
+whose data policy is `local_private`.
+
+After changing the hosted dashboard, follow
+[`SITES_DEPLOY_HANDOFF.md`](SITES_DEPLOY_HANDOFF.md) to validate, package, and
+deploy the exact tuned commit without exposing credentials.
 
 ## Plugin lifecycle and recovery
 
@@ -83,7 +89,7 @@ reconnects using the preserved registries and requires no target-machine Node,
 Python, `uv`, `pnpm`, tunnel, or manually started web server.
 
 To reconnect a different or recreated Site, run `sole-research site configure`
-again with the new URL and credential-file paths. Credential rotation/revocation
+again with the new URL and publisher-credential path. Credential rotation/revocation
 and Site deletion are deliberately separate operations: rotate the Site-scoped
 publisher value and its local user-only file together, or explicitly delete the
 Site through Sites. Plugin uninstall never performs either action.

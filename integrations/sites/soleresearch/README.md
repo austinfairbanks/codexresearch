@@ -1,6 +1,6 @@
 # Sole Research Site
 
-Private, read-only Codex Sites projection for local Sole Research projects.
+Public, read-only Codex Sites projection for local Sole Research projects.
 The Site stores bounded snapshots and an immutable revision ledger in D1. It
 does not expose research mutation routes, source document bodies, capabilities,
 or publisher credentials.
@@ -20,10 +20,9 @@ npm run build
 
 The Python publisher posts to the project-bound
 `/api/v1/projects/<project-id>/snapshots` route; `/api/v1/publish` remains a
-compatibility alias. Owner-only deployments
-also require the separate Sites dispatch credential in the
-`OAI-Sites-Authorization` header. The route requires the site-scoped application
-secret, rejects projections over 2 MiB, verifies their content hash, rejects
+compatibility alias. The route requires the site-scoped publishing secret,
+rejects projections over 2 MiB, verifies their content hash, rejects
 stale or conflicting revisions, and atomically writes the current row plus the
 latest 20 immutable revisions. Browser routes are read-only and rely on the
-Sites audience policy for access.
+Sites public-access policy. Only projects explicitly initialized with the
+`public_only` data policy may be projected to this Site.

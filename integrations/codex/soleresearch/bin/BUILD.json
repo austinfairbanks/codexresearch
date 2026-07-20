@@ -4,7 +4,7 @@
   "architecture": "arm64",
   "python": "3.12.13",
   "packager": "pyinstaller 6.21.0",
-  "sha256": "f79292ea13b854e840ea59907fccb55d44f542a98ac7069138cca13825c77650",
+  "sha256": "ca7a7408fe166b7f8cedc376bb909040dfaa4bff236916cfde36487e34499e2f",
   "sbom": "SBOM.spdx.json",
   "sbom_sha256": "9bb52bc80a76c5c9fbb325b283f288621a53d2f541ab3d1ba8de5bd07b5cf484",
   "signed": "ad-hoc",

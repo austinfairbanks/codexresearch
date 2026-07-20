@@ -1,16 +1,16 @@
 # Sole Research transition requirement audit
 
-Audit date: 2026-07-18  
+Audit date: 2026-07-20
 Plan: `MCP_PLUGIN_TRANSITION_PLAN.md`, revision r4  
 Audited implementation: macOS arm64 developer preview
 
 Status meanings:
 
-- **Verified** — implemented and exercised in this repository or the private Site.
+- **Verified** — implemented and exercised in this repository or the public Site.
 - **Partial** — the locally actionable implementation exists, but a specified UX,
   lifecycle, or release check still needs direct evidence.
 - **External gate** — completion requires a signing identity, another platform,
-  an authenticated ChatGPT desktop surface, or explicit authorization that is
+  a ChatGPT desktop surface, or explicit authorization that is
   not available to this implementation session.
 
 ## Outcome and invariants
@@ -29,7 +29,7 @@ Status meanings:
 
 | Gate | Status | Evidence or remaining gate |
 | --- | --- | --- |
-| A — Sites and side-by-side viability | Partial | Owner-only Site deployed at `https://sole-research.general992066.chatgpt.site`; local Chrome QA covers wide, medium, responsive, and 200% rendering; dashboard tests cover interaction/state behavior. The Browser integration initialized successfully in the implementation task, but discovery returned no available Browser instance. Direct authenticated ChatGPT built-in-browser and side-by-side testing is therefore an evidenced external gate. The originally proposed disposable `spikes/` directory was superseded by the production-compatible private Site and was not retained as a separate artifact. |
+| A — Sites and side-by-side viability | Partial | Public read-only Site deployed at `https://sole-research.general992066.chatgpt.site`; local Chrome QA covers wide, medium, responsive, and 200% rendering; dashboard tests cover interaction/state behavior. The Browser integration initialized successfully in the implementation task, but discovery returned no available Browser instance. Direct ChatGPT built-in-browser and side-by-side testing is therefore an evidenced external gate. The originally proposed disposable `spikes/` directory was superseded by the production-compatible Site and was not retained as a separate artifact. |
 | B — snapshot publication | Verified | Preferred authenticated live D1 path selected. Project-bound `POST /api/v1/projects/:projectId/snapshots`, atomic latest-revision advancement, bounded history, live revision polling, and successful production publication are verified. |
 | C — native workflow packaging | Verified for macOS arm64 | Frozen Python one-file runtime, embedded contracts, checksum, build metadata, SPDX SBOM, and isolated no-target-runtime verifier. Signing is tracked under Phase 5. |
 | D — supported platforms | External gate | Matrix is declared in `integrations/codex/soleresearch/release-platforms.json`. Only macOS arm64 is built and cleanly verified here; macOS x86_64, Windows x86_64, and Linux x86_64 need native hosts. |
@@ -49,13 +49,13 @@ Status meanings:
 | In-place refresh and state preservation | Verified in implementation/tests | Small revision polling, selective reload, camera/focus/tab/search/draft preservation, and stale/error status logic are in the shared dashboard client. Direct built-in-browser observation remains part of Gate A. |
 | Durable outbox and harmless offline behavior | Verified | A failed publication remains retryable and cannot mark itself sent or block local mutation. |
 | Platform-appropriate nonsecret workspace/Site configuration | Verified | macOS Application Support registry contains the workspace root, Site URL, and credential paths only. |
-| Production credentials outside temporary storage | External gate | Current developer credentials are mode-0600 files under `/private/tmp`. Moving sign-in/publisher credentials into durable user storage requires explicit user authorization; the implementation does not silently persist them. |
+| Production publishing credential outside temporary storage | Optional local convenience | The current developer publisher credential is a mode-0600 file under `/private/tmp`. Losing it never affects local research or dashboard availability; publishing can be reauthorized. The dashboard has no viewer credential. |
 
 ## Phases 0–7
 
 | Phase | Status | Evidence or remaining gate |
 | --- | --- | --- |
-| 0 — contracts and Sites proof | Partial | Golden fixtures, workflow inventory, owner-only Site, live revision publication, project isolation, Gate decisions, and coverage inventory are complete. Exact ChatGPT desktop version/layout observation and the proposed separate spike `RESULTS.md` are not available; production evidence supersedes the spike technically but not documentary parity. |
+| 0 — contracts and Sites proof | Partial | Golden fixtures, workflow inventory, public read-only Site, live revision publication, project isolation, Gate decisions, and coverage inventory are complete. Exact ChatGPT desktop version/layout observation and the proposed separate spike `RESULTS.md` are not available; production evidence supersedes the spike technically but not documentary parity. |
 | 1 — services and projection | Verified | Transport-neutral projection service, stable hash, redaction, stale/capability behavior, and HTTP compatibility pass. |
 | 2 — read-only Sites dashboard | Partial | Full shared dashboard is packaged, deep links and read clients work, browser mutation is absent, responsive overflow fix is included, and automated UI/layout assertions cover keyboard, refresh, large layouts, and reduced-motion CSS. Authenticated built-in-browser interaction remains external. |
 | 3 — secure publication and refresh | Verified | Authenticated D1 ingest, exact retry, conflicts, outbox, bounded backoff, manual retry, history, polling, and project URL result are implemented and production-tested. |
@@ -68,9 +68,9 @@ Status meanings:
 
 | Layer | Status |
 | --- | --- |
-| Domain services, projection, publication, MCP, security, compatibility UI | Verified by the Python suite (272 tests after the responsive assertion update). |
-| Sites build/server contract | Verified by production build and four rendered/route/security tests. |
-| Live Site | Verified owner-only deployment, D1 publication, summary/revision reads, paged evidence, and project deep link. |
+| Domain services, projection, publication, MCP, security, compatibility UI | Verified by the Python suite (274 tests). |
+| Sites build/server contract | Verified by production build and five rendered/route/security tests. |
+| Live Site | Verified public read-only deployment, D1 publication, summary/revision reads, paged evidence, and project deep link. |
 | Dashboard visual QA | Verified locally at wide, medium, and high-density/200% layouts; narrow-toolbar overflow corrected. Built-in-browser manual QA remains external. |
 | Packaging | Verified on macOS arm64 with the isolated native verifier. Signing and remaining OS/architecture rows are external. |
 | Plugin lifecycle | Install, update, rollback, uninstall preservation, reinstall/reconnection, cached-native launch, and revoked-credential rejection are verified on macOS arm64. The rollback canary used two disposable local cachebuster versions; rollback between two published releases remains a distribution check. |
@@ -79,14 +79,14 @@ Status meanings:
 
 The developer-preview definition is satisfied on this macOS arm64 workstation:
 the installed native plugin needs no target Node/Python runtime or local web
-server, covers the workflow, publishes safely to the owner-only Site, and keeps
+server, covers the workflow, publishes safely to the public read-only Site, and keeps
 the localhost fallback and project files intact.
 
 The plan's unrestricted/general-release definition is **not yet satisfied**.
-The remaining items are explicit and non-local: authenticated ChatGPT desktop
+The remaining items are explicit and non-local: ChatGPT desktop
 built-in-browser QA; signed/notarized macOS and signed Windows artifacts;
 native builds and clean-machine tests for macOS x86_64, Windows x86_64, and
 Linux x86_64; and publishing/testing two real immutable distribution releases.
-The current temporary credential files
-also do not survive a reboot unless the user explicitly authorizes durable
-secret storage.
+The current temporary publishing credential may not survive a reboot, but it
+can be reauthorized and is not required to view the dashboard or preserve local
+research.

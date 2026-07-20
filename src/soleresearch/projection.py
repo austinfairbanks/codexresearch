@@ -31,49 +31,58 @@ def _site_configuration_record() -> dict[str, Any] | None:
     if not path.is_file() or path.is_symlink():
         return None
     value = read_json(path)
-    required = {"schema_version", "site_url", "publisher_token_file", "sites_auth_token_file"}
-    if not isinstance(value, dict) or set(value) != required or value.get("schema_version") != 1:
+    if not isinstance(value, dict):
+        raise ProjectError("invalid Sites configuration")
+    schema_version = value.get("schema_version")
+    required = {"schema_version", "site_url", "publisher_token_file"}
+    legacy = required | {"sites_auth_token_file"}
+    if not (
+        (schema_version == 2 and set(value) == required)
+        or (schema_version == 1 and set(value) == legacy)
+    ):
         raise ProjectError("invalid Sites configuration")
     _publish_url(str(value["site_url"]))
     _publisher_token(Path(str(value["publisher_token_file"])))
-    _publisher_token(Path(str(value["sites_auth_token_file"])))
-    return value
+    return {
+        "schema_version": 2,
+        "site_url": value["site_url"],
+        "publisher_token_file": value["publisher_token_file"],
+    }
 
 
 def site_configuration() -> dict[str, Any]:
     value = _site_configuration_record()
     if value is None:
-        return {"schema_version": 1, "configured": False, "site_url": None}
+        return {"schema_version": 2, "configured": False, "site_url": None}
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "configured": True,
         "site_url": value["site_url"],
-        "credential_files": "configured and validated",
+        "publishing_credential": "configured and validated",
+        "dashboard_access": "public read-only",
         "configuration": str(config_home() / SITE_CONFIG),
     }
 
 
-def configure_site(*, site_url: str, publisher_token_file: Path, sites_auth_token_file: Path) -> dict[str, Any]:
+def configure_site(*, site_url: str, publisher_token_file: Path) -> dict[str, Any]:
     normalized_url = site_url.rstrip("/")
     _publish_url(normalized_url)
     publisher = publisher_token_file.resolve()
-    sites_auth = sites_auth_token_file.resolve()
     _publisher_token(publisher)
-    _publisher_token(sites_auth)
     path = config_home() / SITE_CONFIG
     atomic_write_json(path, {
-        "schema_version": 1,
+        "schema_version": 2,
         "site_url": normalized_url,
         "publisher_token_file": str(publisher),
-        "sites_auth_token_file": str(sites_auth),
     })
     path.chmod(0o600)
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "configured": True,
         "site_url": normalized_url,
         "configuration": str(path),
-        "credentials": "external mode-0600 files",
+        "publishing_credential": "external mode-0600 file",
+        "dashboard_access": "public read-only",
     }
 
 
@@ -118,6 +127,8 @@ def build_dashboard_projection(
         raise ProjectError("published revision must be a positive integer")
     root = project_path.resolve()
     project = load_project(root)
+    if project["data_policy"] != "public_only":
+        raise ProjectError("only public_only projects may be published to the public dashboard")
     thread = thread_id.strip() or "unknown"
     if len(thread) > 200:
         raise ProjectError("thread identity exceeds 200 characters")
@@ -190,13 +201,6 @@ def _publisher_token(path: Path) -> str:
     return token
 
 
-def _sites_auth_token(path: Path | None) -> str | None:
-    if path is None:
-        configured = os.environ.get("SOLERESEARCH_SITES_AUTH_TOKEN_FILE", "").strip()
-        path = Path(configured) if configured else None
-    return None if path is None else _publisher_token(path)
-
-
 def _publish_url(site_url: str, project_id: str | None = None) -> str:
     parsed = urlsplit(site_url.strip())
     if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:
@@ -213,7 +217,6 @@ def publish_dashboard_projection(
     *,
     site_url: str | None = None,
     publisher_token_file: Path | None = None,
-    sites_auth_token_file: Path | None = None,
     thread_id: str = "unknown",
     transport: httpx.BaseTransport | None = None,
     sleeper: Callable[[float], None] = time.sleep,
@@ -226,7 +229,6 @@ def publish_dashboard_projection(
             raise ProjectError("Site is not configured; provide publish options or run site configure")
         site_url = site_url or str(configured["site_url"])
         publisher_token_file = publisher_token_file or Path(str(configured["publisher_token_file"]))
-        sites_auth_token_file = sites_auth_token_file or Path(str(configured["sites_auth_token_file"]))
     outbox_path = root / PUBLICATION_OUTBOX
     projection = read_json(outbox_path) if outbox_path.is_file() else next_dashboard_projection(root, thread_id=thread_id)
     validate_document("dashboard_projection", projection)
@@ -235,10 +237,7 @@ def publish_dashboard_projection(
     if not outbox_path.is_file():
         atomic_write_json(outbox_path, projection)
     token = _publisher_token(publisher_token_file)
-    sites_token = _sites_auth_token(sites_auth_token_file)
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    if sites_token is not None:
-        headers["OAI-Sites-Authorization"] = f"Bearer {sites_token}"
     response: httpx.Response | None = None
     last_error: httpx.HTTPError | None = None
     with httpx.Client(timeout=httpx.Timeout(30.0, connect=10.0), follow_redirects=False, transport=transport) as client:

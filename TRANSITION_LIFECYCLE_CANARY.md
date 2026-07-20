@@ -3,7 +3,7 @@
 Canary date: 2026-07-18  
 Plugin: `soleresearch@personal`  
 Version: `0.2.0+codex.20260718200323`  
-Site version: 4, owner-only production deployment
+Site version: 4, later changed to public read-only access
 
 ## Procedure and results
 
@@ -23,9 +23,10 @@ Site version: 4, owner-only production deployment
 7. Launched the installed standalone binary directly. `--version`, `workspace
    show`, and `site show` succeeded and recovered the preserved workspace and
    Site configuration without a target Node or Python process.
-8. Sent fail-closed production probes with bogus/revoked credential values.
-   Both Sites access and snapshot publication returned HTTP 401, and the live
-   project revision remained 7 before and after the probes.
+8. Before the public-view transition, sent fail-closed production probes with
+   bogus/revoked viewer and publisher values. Both returned HTTP 401, and the
+   live project revision remained 7 before and after the probes. The viewer
+   credential has since been removed; publisher rejection remains required.
 9. Registered a disposable local marketplace containing a copy of the plugin,
    installed cachebuster version `0.2.0+codex.20260718200323`, updated it to
    `0.2.0+codex.20260718202710`, and rolled it back to the original version.

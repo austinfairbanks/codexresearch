@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Sole Research",
-  description: "A private, read-only view of local-first evidence research.",
+  description: "A public, read-only view of local-first evidence research.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

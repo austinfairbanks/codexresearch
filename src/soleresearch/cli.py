@@ -77,7 +77,6 @@ def _parser() -> argparse.ArgumentParser:
     publish.add_argument("project", type=Path)
     publish.add_argument("--site-url")
     publish.add_argument("--publisher-token-file", type=Path)
-    publish.add_argument("--sites-auth-token-file", type=Path)
     publish.add_argument("--thread-id", default="unknown")
 
     publication = commands.add_parser("publication", help="inspect Sites publication and retry state")
@@ -85,12 +84,11 @@ def _parser() -> argparse.ArgumentParser:
     publication_status_parser = publication_actions.add_parser("status")
     publication_status_parser.add_argument("project", type=Path)
 
-    site = commands.add_parser("site", help="configure or inspect the owner-only Site publisher")
+    site = commands.add_parser("site", help="configure or inspect the public read-only Site publisher")
     site_actions = site.add_subparsers(dest="action", required=True)
     site_configure = site_actions.add_parser("configure")
     site_configure.add_argument("--url", required=True)
     site_configure.add_argument("--publisher-token-file", required=True, type=Path)
-    site_configure.add_argument("--sites-auth-token-file", required=True, type=Path)
     site_actions.add_parser("show")
 
     serve = commands.add_parser("serve", help="serve the local outline-first web UI")
@@ -764,7 +762,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.project,
                 site_url=args.site_url,
                 publisher_token_file=args.publisher_token_file,
-                sites_auth_token_file=args.sites_auth_token_file,
                 thread_id=args.thread_id,
             )
         elif args.command == "publication":
@@ -774,7 +771,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                 configure_site(
                     site_url=args.url,
                     publisher_token_file=args.publisher_token_file,
-                    sites_auth_token_file=args.sites_auth_token_file,
                 )
                 if args.action == "configure"
                 else site_configuration()

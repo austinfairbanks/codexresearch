@@ -96,7 +96,7 @@ universal capability.
    project files.
 2. Extract projection logic from `ui.py` without changing research semantics.
 3. Port the existing read-only dashboard to a Sites-compatible project.
-4. Prove private/restricted Sites deployment and built-in-browser use.
+4. Prove public, read-only Sites deployment and built-in-browser use.
 5. Add revision-safe snapshot publication and automatic dashboard refresh.
 6. Expose the complete existing workflow through bounded model-visible MCP
    tools or explicitly retained packaged compatibility commands.
@@ -121,8 +121,9 @@ universal capability.
   browser docking geometry, or private Sites APIs.
 - Do not make the `Stop` hook responsible for research-state correctness.
 - Do not add same-project multi-writer reconciliation in this transition.
-- Do not submit the plugin or Site publicly without separate human approval and
-  review.
+- Do not submit the plugin to a public marketplace without separate human
+  approval and review. Public dashboard deployment is explicitly approved and
+  accepts projections only from `public_only` projects.
 
 ## Product invariants
 
@@ -599,7 +600,7 @@ separate approval.
 ## Release sequence
 
 1. `0.2.0-dev`: Sites feasibility spike and documented verdict only.
-2. `0.3.0-alpha`: projection service and private read-only Site; HTTP remains
+2. `0.3.0-alpha`: projection service and public read-only Site; HTTP remains
    default.
 3. `0.4.0-beta`: selected publication path and automatic revision refresh.
 4. `0.5.0-beta`: complete local MCP workflow parity and initial native package.
@@ -651,8 +652,9 @@ Version numbers are coordination markers, not calendar commitments.
 
 The approved implementation selected the preferred live D1 path, a frozen
 Python runtime, explicit persistent workspace selection, one writer thread per
-project, an owner-only Site, and separate site-scoped application and Sites
-dispatch credentials. The deployed API retains the existing read-client routes
+project, a public read-only Site, and a site-scoped publishing credential. The
+dashboard has no viewer credential, and the publisher rejects projects not
+explicitly marked `public_only`. The deployed API retains the existing read-client routes
 (`/workspace`, `/state`, `/outline`, and `/completion`) so the same dashboard can
 run against localhost and Sites during the compatibility cycle. The specified
 project routes and revision-bound collection cursors are also available; the

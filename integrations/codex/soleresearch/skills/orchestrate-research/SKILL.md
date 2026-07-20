@@ -12,8 +12,8 @@ On first use, call `soleresearch_workspace_show`. If no workspace is selected,
 ask the human for one explicit directory and call `soleresearch_workspace_select`.
 Never infer or scan a broader machine path.
 Before publication, call `soleresearch_site_show`; if unconfigured, request the
-Site URL and two credential-file paths, then call `soleresearch_site_configure`.
-Never request or display credential contents.
+Site URL and publisher-credential file path, then call
+`soleresearch_site_configure`. Never request or display credential contents.
 ## Ground first
 
 1. Use `soleresearch_status` and `soleresearch_doctor` for an existing project.
@@ -107,8 +107,9 @@ Delete/rebuild only the disposable index.
 
 The Site is a read-only projection, never authoritative state. After a coherent
 local mutation or at turn completion, use `soleresearch_publish` when the
-external mode-0600 publisher token and separate Sites dispatch token files are
-configured. Use
+external mode-0600 publisher token file is configured. Publish only projects
+whose declared data policy is `public_only`; the dashboard is public and has no
+viewer credential. Use
 `soleresearch_publication_status` to report successful and pending revisions. A publish
 failure must be visible but must never roll back, corrupt, or block local
 research. Present the project-scoped Site URL for the in-app browser; if Browser

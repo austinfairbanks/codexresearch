@@ -56,6 +56,18 @@ test("publisher is authenticated, bounded, revision-safe, and browser routes sta
   assert.doesNotMatch(worker, /PUT|PATCH|DELETE/);
 });
 
+test("public dashboard has no viewer authentication surface", async () => {
+  const [page, layout, siteReadme] = await Promise.all([
+    readFile(new URL("app/page.tsx", root), "utf8"),
+    readFile(new URL("app/layout.tsx", root), "utf8"),
+    readFile(new URL("README.md", root), "utf8"),
+  ]);
+  assert.doesNotMatch(page, /signin|authenticated|credential|token/i);
+  assert.match(layout, /public, read-only/);
+  assert.match(siteReadme, /Public, read-only/);
+  await assert.rejects(access(new URL("app/chatgpt-auth.ts", root)));
+});
+
 test("provides every project-scoped route in the transition contract", async () => {
   await Promise.all([
     "app/projects/[projectId]/route.ts",

@@ -165,7 +165,7 @@ def _normalize_path(tool: CommandTool, action: argparse.Action, value: str, argu
             raise ProjectError("workspace root must be an existing real directory")
         return str(resolved)
     root = _workspace_root()
-    if action.dest in {"controller_token_file", "publisher_token_file", "sites_auth_token_file"}:
+    if action.dest in {"controller_token_file", "publisher_token_file"}:
         resolved = path.resolve()
         if not resolved.is_file() or resolved.is_symlink():
             raise ProjectError("credential path must be a regular file")
