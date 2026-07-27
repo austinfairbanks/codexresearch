@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import errno
 import hashlib
 import json
 import secrets
@@ -977,22 +978,27 @@ def serve(
     *,
     host: str = "127.0.0.1",
     port: int = 8765,
+    fallback_to_free_port: bool = False,
     controller_token: str | None = None,
     edit: bool = False,
     unsafe_non_loopback: bool = False,
     allowed_hosts: tuple[str, ...] = (),
     workspace_root: Path | None = None,
 ) -> None:
-    server = create_server(
-        project_path,
-        host=host,
-        port=port,
-        controller_token=controller_token,
-        edit=edit,
-        unsafe_non_loopback=unsafe_non_loopback,
-        allowed_hosts=allowed_hosts,
-        workspace_root=workspace_root,
-    )
+    server_args = {
+        "host": host,
+        "controller_token": controller_token,
+        "edit": edit,
+        "unsafe_non_loopback": unsafe_non_loopback,
+        "allowed_hosts": allowed_hosts,
+        "workspace_root": workspace_root,
+    }
+    try:
+        server = create_server(project_path, port=port, **server_args)
+    except OSError as exc:
+        if not fallback_to_free_port or port == 0 or exc.errno != errno.EADDRINUSE:
+            raise
+        server = create_server(project_path, port=0, **server_args)
     print(json.dumps({"schema_version": SCHEMA_VERSION, "listening": f"http://{host}:{server.server_port}", "edit_enabled": edit}, sort_keys=True), flush=True)
     try:
         server.serve_forever()

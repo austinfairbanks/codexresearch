@@ -184,14 +184,14 @@
     },
     {
       "id": "core.serve",
-      "command": "sole-research serve PROJECT [--workspace-dir DIR] [--host HOST] [--port PORT] [--allowed-host HOST] [--edit --controller-token-file HUMAN_CAPABILITY_FILE]",
-      "summary": "Serve one project or an explicit directory of independent question projects from authoritative files.",
+      "command": "sole-research serve PROJECT [--workspace-dir DIR] [--host HOST] [--port PORT] [--fallback-to-free-port] [--allowed-host HOST] [--edit --controller-token-file HUMAN_CAPABILITY_FILE]",
+      "summary": "Serve one project or an explicit directory of independent question projects from authoritative files, with optional occupied-port fallback.",
       "authority": "action_dependent",
       "authority_modes": [{"condition": "read-only (default)", "authority": "none"}, {"condition": "--edit", "authority": "human_controller"}],
-      "inputs": [{"name": "project", "required": true, "type": "path", "secret": false}, {"name": "workspace_dir", "required": false, "type": "path", "secret": false}, {"name": "host", "required": false, "type": "string", "secret": false}, {"name": "port", "required": false, "type": "integer", "secret": false}, {"name": "allowed_host", "required": false, "type": "repeatable_string", "secret": false}, {"name": "edit", "required": false, "type": "boolean", "secret": false}, {"name": "controller_token_file", "required": false, "type": "path", "secret": true}, {"name": "unsafe_non_loopback", "required": false, "type": "boolean", "secret": false}],
+      "inputs": [{"name": "project", "required": true, "type": "path", "secret": false}, {"name": "workspace_dir", "required": false, "type": "path", "secret": false}, {"name": "host", "required": false, "type": "string", "secret": false}, {"name": "port", "required": false, "type": "integer", "secret": false}, {"name": "fallback_to_free_port", "required": false, "type": "boolean", "secret": false}, {"name": "allowed_host", "required": false, "type": "repeatable_string", "secret": false}, {"name": "edit", "required": false, "type": "boolean", "secret": false}, {"name": "controller_token_file", "required": false, "type": "path", "secret": true}, {"name": "unsafe_non_loopback", "required": false, "type": "boolean", "secret": false}],
       "output": "Loopback HTTP UI; JSON APIs expose the registered question workspace, project-scoped read state, and outline ETags.",
       "side_effects": ["Edit mode may atomically write outline.md and one human-edit event at a clean human gate."],
-      "limits": ["Workspace discovery is limited to immediate non-symlinked project directories.", "Only the primary project may be annotated in an edit-enabled server session.", "Read-only by default; non-loopback requires explicit unsafe acknowledgement and can never edit in v1."],
+      "limits": ["Workspace discovery is limited to immediate non-symlinked project directories.", "Only the primary project may be annotated in an edit-enabled server session.", "Read-only by default; non-loopback requires explicit unsafe acknowledgement and can never edit in v1.", "With --fallback-to-free-port, only an EADDRINUSE failure for a nonzero requested port is retried by binding port 0; all other bind failures remain errors."],
       "failure_modes": ["Invalid host, capability, CSRF token, ETag, outline anchors, or active-run gate fails closed."]
     },
     {

@@ -142,7 +142,7 @@
   }
 
   function spacedFallback(nodes, radii, depths, clearance, edgeClearance) {
-    const {byId, children} = graphIndex(nodes);
+    const {children} = graphIndex(nodes);
     const xById = new Map();
     const visited = new Set();
     let leafCursor = 0;
@@ -386,6 +386,42 @@
     }));
   }
 
+  function focusedRouteEdges({nodes, focusedId}) {
+    if (!focusedId) return [];
+    const records = (nodes || []).map((node) => ({
+      id: String(node.id),
+      parentId: node.parentId == null ? null : String(node.parentId),
+      cue: String(node.cue || "Explore this topic"),
+      order: Number.isFinite(node.order) ? node.order : 0,
+    }));
+    const byId = new Map(records.map((node) => [node.id, node]));
+    const focused = byId.get(String(focusedId));
+    if (!focused) return [];
+    const edges = records
+      .filter((node) => node.parentId === focused.id)
+      .sort((left, right) => left.order - right.order || left.id.localeCompare(right.id))
+      .map((node) => ({
+        id: `child:${focused.id}:${node.id}`,
+        sourceId: focused.id,
+        destinationId: node.id,
+        cue: node.cue,
+        relationship: "child",
+        persistent: false,
+      }));
+    if (focused.parentId && byId.has(focused.parentId)) {
+      const parent = byId.get(focused.parentId);
+      edges.unshift({
+        id: `parent:${focused.id}:${parent.id}`,
+        sourceId: focused.id,
+        destinationId: parent.id,
+        cue: parent.cue,
+        relationship: "parent",
+        persistent: false,
+      });
+    }
+    return edges;
+  }
+
   function placeRoutes({edges, nodes, targetRadius = 18, clearance = 10}) {
     const byId = new Map(nodes.map((node) => [node.id, node]));
     const placed = [];
@@ -403,8 +439,8 @@
       const tangentY = dx / length;
       const footprintRadius = routeFootprintRadius(edge.cue, targetRadius);
       const cueWidth = routeCueWidth(edge.cue);
-      const sourceTangent = Math.min(.86, Math.max(.14, (source.radius + targetRadius + clearance) / length));
-      const destinationTangent = Math.min(.86, Math.max(.14, 1 - (destination.radius + targetRadius + clearance) / length));
+      const sourceTangent = Math.min(.86, (source.radius + targetRadius + clearance) / length);
+      const destinationTangent = Math.max(.14, 1 - (destination.radius + targetRadius + clearance) / length);
       const preferredFractions = edge.persistent
         ? [.5, .62, .38, .72, .28, destinationTangent, sourceTangent]
         : [sourceTangent, destinationTangent, (sourceTangent + destinationTangent) / 2, .5, .62, .38, .72, .28];
@@ -439,6 +475,15 @@
         const nodeSafe = validateCircles([...nodes, candidateTarget], {clearance}).valid;
         const targetSafe = validateCircles([...routeTargets, candidateTarget], {clearance}).valid;
         return nodeSafe && targetSafe;
+      }
+      if (edge.relationship === "parent") {
+        const sourceDistance = source.radius + targetRadius + clearance + 2;
+        selected = candidateAt(
+          source.x + dx / length * sourceDistance,
+          source.y + dy / length * sourceDistance,
+          sourceDistance / length,
+          0
+        );
       }
       for (let offsetIndex = 0; offsetIndex <= 4 && !selected; offsetIndex += 1) {
         const signs = offsetIndex === 0 ? [0] : [1, -1];
@@ -507,7 +552,10 @@
           if (cue) break;
         }
       }
-      if (!cue) throw new Error(`unable to place route cue ${route.id} without an intersection`);
+      if (!cue) {
+        route.persistent = false;
+        return;
+      }
       route.cueX = cue.x;
       route.cueY = cue.y;
       route.cueProjection = cue.projection;
@@ -541,6 +589,7 @@
     displayedRadius,
     fitScaleAroundPoint,
     fitScaleForBounds,
+    focusedRouteEdges,
     isRouteActivation,
     layoutForest,
     placeRoutes,

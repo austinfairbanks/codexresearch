@@ -1,0 +1,179 @@
+{
+  "base_outline_hash": "sha256:a52d4f2b73830de4de3742a5ec4c09df87a05bb2e520ce8dcf41f52855625d53",
+  "graph_contract": "strict_v1",
+  "graph_hash": "sha256:bbc7280fa4c9321c58d8949b46601825f0ac85cd1e291d7376397dce0286ff72",
+  "graph_revision": 5,
+  "mappings": {
+    "nod_0e466cacf239b4bb02f8aafb9ba45205": {
+      "body": "Registry searches returned NCT07706361, a not-yet-recruiting patch study, and NCT07437586, a recruiting topical wound-healing record. Both are sponsor-submitted and neither supports injectable RUO use.",
+      "parent_id": "nod_89f3097df0bc4aeb42c110c127354e5f",
+      "position": 3,
+      "title": "Ongoing research"
+    },
+    "nod_1dd00006e3e4500d10a3b4d0198ef5ad": {
+      "body": "Public 5 mg listings observed July 25–26, 2026 were approximately $43–$53, including a displayed sale price of $46. List price is not a quality metric.",
+      "parent_id": "nod_e56d39334a6d44572ea56e44be61fef9",
+      "position": 2,
+      "title": "Sourcing & pricing"
+    },
+    "nod_1fccf76ca341b71438289d31dd85082e": {
+      "body": "",
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 2,
+      "title": "2. TB-500 (thymosin beta-4 fragment)"
+    },
+    "nod_2e2b54b173e3b878cad7e00a60da5c31": {
+      "body": "CJC-1295 without DAC, 5 mg, was observed at $41 from one public catalog. DAC and no-DAC forms are not interchangeable; identity testing must resolve the actual molecule.",
+      "parent_id": "nod_e43a09828502efe036e6cc56f850307f",
+      "position": 2,
+      "title": "Sourcing & pricing"
+    },
+    "nod_39ffcbbb0d119529047dcf5c921fb66d": {
+      "body": "Ipamorelin is a ghrelin-receptor growth-hormone secretagogue studied for growth-hormone release and gastrointestinal motility. A randomized Phase 2 postoperative-ileus study provides human context but does not validate broad recovery or performance claims.",
+      "parent_id": "nod_e56d39334a6d44572ea56e44be61fef9",
+      "position": 0,
+      "title": "Main effects"
+    },
+    "nod_3e8db61c848077287e8e812a9013dca9": {
+      "body": "This endogenous copper-binding tripeptide is studied for matrix remodeling, collagen-related signaling, wound repair, and skin biology. Positive work is largely preclinical or topical/cosmetic and does not establish systemic or injectable benefit.",
+      "parent_id": "nod_89f3097df0bc4aeb42c110c127354e5f",
+      "position": 0,
+      "title": "Main effects"
+    },
+    "nod_5058c2886d750af25093100d86b278dd": {
+      "body": "NCT00267527, a Phase 2 program in HIV-associated visceral obesity, was terminated. No active credible interventional program was identified in the registry search.",
+      "parent_id": "nod_e43a09828502efe036e6cc56f850307f",
+      "position": 3,
+      "title": "Ongoing research"
+    },
+    "nod_5a0d197512e8563ae94a4e5c91bbe82e": {
+      "body": "CJC-1295 is a long-acting growth-hormone-releasing-hormone analog. A randomized healthy-adult study demonstrated prolonged growth-hormone and IGF-1 increases, establishing pharmacodynamic activity—not proven recovery, body-composition, or performance benefits.",
+      "parent_id": "nod_e43a09828502efe036e6cc56f850307f",
+      "position": 0,
+      "title": "Main effects"
+    },
+    "nod_5a337108c4481adb55b7a6cc4e711f64": {
+      "body": "The NCT07487363 search result explicitly describes itself as a fictional example, so it is excluded as evidence of a real program. Full-length thymosin beta-4 trials are related biology, not direct evidence for TB-500.",
+      "parent_id": "nod_1fccf76ca341b71438289d31dd85082e",
+      "position": 3,
+      "title": "Ongoing research"
+    },
+    "nod_5f6aa46194f7039ec47adccd711e79c7": {
+      "body": "There is no audited public U.S. dataset of RUO peptide sales, so this is a market-visibility shortlist—not a verified unit-sales ranking. It covers compounds recurring across recent peer-reviewed reviews, FDA safety materials, public RUO catalogs, and registry searches. FDA and peer-reviewed human evidence receive the most weight; animal and in-vitro results remain hypotheses about human benefit. ClinicalTrials.gov records are sponsor-submitted, and public catalog pages are used only for dated price observations. This project provides no human-use, administration, or dosing guidance.",
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 0,
+      "title": "How this top-five list should be read"
+    },
+    "nod_61c363f5677a9ec89da484fbcef46ce6": {
+      "body": "",
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 1,
+      "title": "1. BPC-157"
+    },
+    "nod_6863e59481467a60edc756eec43659c8": {
+      "body": "FDA reports serious adverse events, including death, in a literature study using intravenous ipamorelin for gastric motility and says evidence is insufficient for other injectable routes. It also flags immunogenicity, aggregation, impurities, and unnatural-amino-acid concerns.",
+      "parent_id": "nod_e56d39334a6d44572ea56e44be61fef9",
+      "position": 1,
+      "title": "Side effects"
+    },
+    "nod_6dd2853b93da5b9e5a3b45ce7c65751c": {
+      "body": "NCT00672074 and NCT01280344 are completed interventional records. No active interventional program clearly testing ipamorelin was identified.",
+      "parent_id": "nod_e56d39334a6d44572ea56e44be61fef9",
+      "position": 3,
+      "title": "Ongoing research"
+    },
+    "nod_7e00a34780a0b34c070b4c0f636ffd21": {
+      "body": "NCT07437547 is a recruiting sponsor-submitted Phase 2 hamstring-strain record. NCT02637284 is an older Phase 1 record with unknown status and no posted results. Registration does not validate efficacy, safety, or legality.",
+      "parent_id": "nod_61c363f5677a9ec89da484fbcef46ce6",
+      "position": 3,
+      "title": "Ongoing research"
+    },
+    "nod_86fd33827b3f9ac61d80742d7f6b0394": {
+      "body": "Marketing emphasizes tissue repair, mobility, cell migration, and angiogenesis. RUO TB-500 is a short thymosin beta-4 fragment; research on full-length thymosin beta-4 cannot be transferred to the fragment. Direct human evidence for the fragment is absent.",
+      "parent_id": "nod_1fccf76ca341b71438289d31dd85082e",
+      "position": 0,
+      "title": "Main effects"
+    },
+    "nod_89f3097df0bc4aeb42c110c127354e5f": {
+      "body": "",
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 5,
+      "title": "5. GHK-Cu"
+    },
+    "nod_a4b61030e24759870993bdfc5571f947": {
+      "body": "FDA says human safety information for injectable GHK-Cu is limited and flags immunogenicity, aggregation, and peptide-impurity concerns. Topical irritation is plausible; systemic copper and injectable risks remain poorly characterized.",
+      "parent_id": "nod_89f3097df0bc4aeb42c110c127354e5f",
+      "position": 1,
+      "title": "Side effects"
+    },
+    "nod_a5845c3417745614ccde7cfce3a0902b": {
+      "body": "Public research-quantity listings observed July 25–26, 2026 showed 5 mg at $52 and 10 mg around $92–$97. These prices are benchmarks only. Legitimate research procurement should require lot identity, chain of custody, LC-MS/HPLC evidence, and experiment-appropriate contaminant testing.",
+      "parent_id": "nod_61c363f5677a9ec89da484fbcef46ce6",
+      "position": 2,
+      "title": "Sourcing & pricing"
+    },
+    "nod_a88de91015b8464c84f8617a11607c0c": {
+      "body": "",
+      "parent_id": null,
+      "position": 0,
+      "title": "What are the five highest-visibility research-use-only peptides in the United States, and what does credible evidence show about effects, harms, laboratory sourcing and pricing, and ongoing research?"
+    },
+    "nod_ac097f2bc1513e853c122311bc426140": {
+      "body": "FDA notes limited clinical data and serious events including increased heart rate and a systemic vasodilatory reaction. Plausible growth-axis concerns include headache, flushing, edema, altered glucose handling, and cardiovascular effects, but RUO incidence is not established.",
+      "parent_id": "nod_e43a09828502efe036e6cc56f850307f",
+      "position": 1,
+      "title": "Side effects"
+    },
+    "nod_b73357674ccee23ff4bbfa68f5bd2a5c": {
+      "body": "FDA flags immunogenicity, aggregation, peptide impurities, and API-characterization concerns and finds safety information insufficient for proposed routes. The human adverse-event profile is largely unknown. Angiogenesis or tumor concerns are theoretical, not demonstrated clinical harms.",
+      "parent_id": "nod_61c363f5677a9ec89da484fbcef46ce6",
+      "position": 1,
+      "title": "Side effects"
+    },
+    "nod_c01cabfe0b50aa81307221d009ac9418": {
+      "body": "A true U.S. popularity ranking requires audited sales or procurement data that are not public. For all five compounds, major gaps include independently replicated human efficacy, route-specific safety, long-term adverse events, validated dosing, interaction data, and reliable post-market surveillance. Future updates should re-check primary publications and verify suspicious or newly posted registry entries before changing conclusions.",
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 6,
+      "title": "What remains unknown"
+    },
+    "nod_c759e7fd0b0e7c79531dda243269e611": {
+      "body": "Public 5 mg listings observed July 25–26, 2026 ranged from $72 to $78. A product labeled TB-500 should be verified against the actual fragment sequence rather than assumed to be full-length thymosin beta-4.",
+      "parent_id": "nod_1fccf76ca341b71438289d31dd85082e",
+      "position": 2,
+      "title": "Sourcing & pricing"
+    },
+    "nod_cc74bc01a0e81b1edca1870c963b3449": {
+      "body": "Research and marketing center on tendon, muscle, gastrointestinal, and wound repair, with proposed angiogenesis, nitric-oxide, fibroblast, and tissue-healing mechanisms. Most efficacy evidence remains animal or laboratory work; human therapeutic efficacy is not established.",
+      "parent_id": "nod_61c363f5677a9ec89da484fbcef46ce6",
+      "position": 0,
+      "title": "Main effects"
+    },
+    "nod_e43a09828502efe036e6cc56f850307f": {
+      "body": "",
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 3,
+      "title": "3. CJC-1295"
+    },
+    "nod_e56d39334a6d44572ea56e44be61fef9": {
+      "body": "",
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 4,
+      "title": "4. Ipamorelin"
+    },
+    "nod_e6a52e678e43215eb2c3e03e5e7f4075": {
+      "body": "Public 50 mg listings observed July 25–26, 2026 ranged from $58 to $64. Copper loading, identity, purity, and stability should be analytically confirmed for the intended experiment.",
+      "parent_id": "nod_89f3097df0bc4aeb42c110c127354e5f",
+      "position": 2,
+      "title": "Sourcing & pricing"
+    },
+    "nod_f598716131282f72fff1e1f3a233dab3": {
+      "body": "FDA reports no human exposure data for the TB-500 fragment and flags immunogenicity, aggregation, and peptide-impurity risks. Its human adverse-event profile is unknown.",
+      "parent_id": "nod_1fccf76ca341b71438289d31dd85082e",
+      "position": 1,
+      "title": "Side effects"
+    }
+  },
+  "outline_hash": "sha256:a52d4f2b73830de4de3742a5ec4c09df87a05bb2e520ce8dcf41f52855625d53",
+  "revision": 5,
+  "schema_version": 2
+}

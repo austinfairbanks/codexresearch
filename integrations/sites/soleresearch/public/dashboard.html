@@ -18,9 +18,27 @@
   </div>
 
   <section id="activity-rail" class="activity-rail" aria-label="Live research activity">
+    <div class="activity-mainline">
+      <span id="activity-indicator" class="activity-indicator" aria-hidden="true"></span>
+      <details id="agent-activity" class="agent-activity">
+        <summary class="agent-activity-summary">
+          <span class="agent-activity-label">Agent assignments</span>
+          <span id="activity-agent-preview" class="agent-activity-preview">Waiting for authoritative run data…</span>
+        </summary>
+        <div class="agent-activity-body">
+          <p id="activity-telemetry" class="agent-activity-telemetry">Task-level visibility · individual tool calls are not recorded</p>
+          <div id="activity-agent-list" class="activity-agent-list" aria-label="Current agent assignments">
+            <p class="agent-activity-empty">Waiting for authoritative run data…</p>
+          </div>
+        </div>
+      </details>
+      <dl class="activity-facts">
+        <div><dt>Task progress</dt><dd id="activity-progress">—</dd></div>
+        <div><dt>Research</dt><dd><span id="activity-sources">—</span> sources · <span id="activity-evidence">—</span> evidence</dd></div>
+      </dl>
+    </div>
     <div class="activity-overview">
       <div class="activity-primary">
-        <span id="activity-indicator" class="activity-indicator" aria-hidden="true"></span>
         <div class="activity-copy">
           <div class="activity-context" aria-label="Current run context">
             <span id="activity-run-state" class="activity-context-item">Run status —</span>
@@ -31,23 +49,7 @@
           <p id="activity-detail" class="activity-detail">Current assignments, blockers, and authoritative events will appear here.</p>
         </div>
       </div>
-      <dl class="activity-facts">
-        <div><dt>Task progress</dt><dd id="activity-progress">—</dd></div>
-        <div><dt>Research</dt><dd><span id="activity-sources">—</span> sources · <span id="activity-evidence">—</span> evidence</dd></div>
-      </dl>
     </div>
-    <details id="agent-activity" class="agent-activity">
-      <summary class="agent-activity-summary">
-        <span class="agent-activity-label">Agent assignments</span>
-        <span id="activity-agent-preview" class="agent-activity-preview">Waiting for authoritative run data…</span>
-      </summary>
-      <div class="agent-activity-body">
-        <p id="activity-telemetry" class="agent-activity-telemetry">Task-level visibility · individual tool calls are not recorded</p>
-        <div id="activity-agent-list" class="activity-agent-list" aria-label="Current agent assignments">
-          <p class="agent-activity-empty">Waiting for authoritative run data…</p>
-        </div>
-      </div>
-    </details>
   </section>
 
   <main class="workbench">
@@ -74,7 +76,7 @@
                 </div>
               </details>
               <div class="map-zoom-controls" role="group" aria-label="Map zoom controls">
-                <button id="map-back" type="button" disabled>Back</button>
+                <button id="map-back" type="button" aria-label="Return to previous research view" title="Return to previous research view" disabled>← Back</button>
                 <button id="map-zoom-out" type="button" aria-label="Zoom map out">−</button>
                 <button id="map-fit" type="button">Fit</button>
                 <button id="map-zoom-in" type="button" aria-label="Zoom map in">+</button>

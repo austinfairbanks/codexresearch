@@ -66,6 +66,33 @@ PROJECT`. The Site is permanently read-only and publicly accessible to anyone
 with its URL. Use the localhost compatibility dashboard instead for projects
 whose data policy is `local_private`.
 
+## Presentation paths
+
+For a configured `public_only` project, the Codex Site is the primary read-only
+presentation medium. Publish only after a coherent canonical change and return
+the project's Site URL; the files on disk remain authoritative. Use the local
+dashboard when Sites is unavailable, while offline, from a non-Codex agent
+harness, or for every `local_private` project.
+
+The agent-neutral launcher needs no browser-specific integration:
+
+```bash
+scripts/serve-dashboard ./research-project
+```
+
+Node.js is not required. On macOS arm64 the checked-in standalone runtime may
+work without any installation; otherwise install `uv` (`brew install uv` on
+macOS), run `uv sync --locked`, and rerun the launcher. `uv` can obtain the
+required Python 3.12+ automatically. Full macOS/Linux setup and verification
+commands are in [`docs/LOCAL_DASHBOARD.md`](docs/LOCAL_DASHBOARD.md).
+
+It validates the project, binds read-only to loopback, and lets the server fall
+back atomically to an OS-assigned port when the preferred bind is occupied. It
+prints the final URL as JSON. See
+[`docs/LOCAL_DASHBOARD.md`](docs/LOCAL_DASHBOARD.md) for workspace use, runtime
+detection, security boundaries, and shutdown behavior. The underlying
+`sole-research serve` command and the Site development flow remain unchanged.
+
 After changing the hosted dashboard, follow
 [`SITES_DEPLOY_HANDOFF.md`](SITES_DEPLOY_HANDOFF.md) to validate, package, and
 deploy the exact tuned commit without exposing credentials.
@@ -402,6 +429,8 @@ conflicts, gaps, run gates/budgets/history, and audit ledgers directly from the
 authoritative project files:
 
 ```bash
+scripts/serve-dashboard ./research-project
+# Equivalent source-development command:
 uv run sole-research serve ./research-project
 ```
 

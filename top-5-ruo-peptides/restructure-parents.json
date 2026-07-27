@@ -1,0 +1,42 @@
+[
+  {"op":"retire","target":"node","target_id":"nod_eabd07b74073f3605520a9e3064aee4e"},
+  {"op":"retire","target":"node","target_id":"nod_d7f101e3d351e35f59b07bc981166b4e"},
+  {"op":"retire","target":"node","target_id":"nod_29e64d2c485053dfd96e443bd4a1b02d"},
+  {"op":"retire","target":"node","target_id":"nod_eb7eca6ff208181846d6564cf8063a7c"},
+  {"op":"retire","target":"node","target_id":"nod_94c89555145232b8be7c3b56f8b429bb"},
+  {
+    "op":"add","target":"node","record":{
+      "node_type":"concept","title":"1. BPC-157",
+      "body":"Research-use-only peptide topic. Expand the child topics for effects, safety, laboratory sourcing and pricing, and ongoing research.",
+      "tags":["bpc-157","ruo"],"parent_id":"nod_a88de91015b8464c84f8617a11607c0c","position":1
+    }
+  },
+  {
+    "op":"add","target":"node","record":{
+      "node_type":"concept","title":"2. TB-500 (thymosin beta-4 fragment)",
+      "body":"Research-use-only fragment topic. Evidence for full-length thymosin beta-4 must not be attributed to TB-500.",
+      "tags":["tb-500","ruo","fragment-distinction"],"parent_id":"nod_a88de91015b8464c84f8617a11607c0c","position":2
+    }
+  },
+  {
+    "op":"add","target":"node","record":{
+      "node_type":"concept","title":"3. CJC-1295",
+      "body":"Research-use-only growth-hormone-axis peptide topic. DAC and no-DAC materials are not interchangeable.",
+      "tags":["cjc-1295","gh-igf1","ruo"],"parent_id":"nod_a88de91015b8464c84f8617a11607c0c","position":3
+    }
+  },
+  {
+    "op":"add","target":"node","record":{
+      "node_type":"concept","title":"4. Ipamorelin",
+      "body":"Research-use-only growth-hormone secretagogue topic.",
+      "tags":["ipamorelin","gh-igf1","ruo"],"parent_id":"nod_a88de91015b8464c84f8617a11607c0c","position":4
+    }
+  },
+  {
+    "op":"add","target":"node","record":{
+      "node_type":"concept","title":"5. GHK-Cu",
+      "body":"Research-use-only copper-peptide topic. Topical and injectable evidence are kept distinct.",
+      "tags":["ghk-cu","copper-peptide","ruo"],"parent_id":"nod_a88de91015b8464c84f8617a11607c0c","position":5
+    }
+  }
+]

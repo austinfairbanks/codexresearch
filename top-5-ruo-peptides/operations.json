@@ -1,0 +1,91 @@
+[
+  {
+    "op": "add",
+    "target": "node",
+    "record": {
+      "node_type": "concept",
+      "title": "How this top-five list should be read",
+      "body": "There is no audited public U.S. dataset of RUO peptide sales, so this is a market-visibility shortlist—not a verified unit-sales ranking. It covers compounds recurring across recent peer-reviewed reviews, FDA safety materials, public RUO catalogs, and registry searches. FDA and peer-reviewed human evidence receive the most weight; animal and in-vitro results remain hypotheses about human benefit. ClinicalTrials.gov records are sponsor-submitted, and public catalog pages are used only for dated price observations. This project provides no human-use, administration, or dosing guidance.",
+      "tags": ["method", "research-use-only", "scope"],
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 0
+    }
+  },
+  {
+    "op": "add",
+    "target": "node",
+    "record": {
+      "node_type": "interpretation",
+      "title": "1. BPC-157",
+      "body": "**Main effects:** Research and marketing center on tendon, muscle, gastrointestinal, and wound repair, with proposed angiogenesis, nitric-oxide, fibroblast, and tissue-healing mechanisms. Most efficacy evidence remains animal or laboratory work; human therapeutic efficacy is not established.\n\n**Side effects and uncertainty:** FDA flags immunogenicity, aggregation, peptide impurities, and API-characterization concerns and finds safety information insufficient for proposed routes. The human adverse-event profile is largely unknown. Angiogenesis or tumor concerns are theoretical, not demonstrated clinical harms.\n\n**Laboratory sourcing and price:** Public research-quantity listings observed July 25–26, 2026 showed 5 mg at $52 and 10 mg around $92–$97. These prices are benchmarks only. Legitimate research procurement should require lot identity, chain of custody, LC-MS/HPLC evidence, and experiment-appropriate contaminant testing.\n\n**Ongoing research:** NCT07437547 is a recruiting sponsor-submitted Phase 2 hamstring-strain record. NCT02637284 is an older Phase 1 record with unknown status and no posted results. Registration does not validate efficacy, safety, or legality.",
+      "tags": ["bpc-157", "ruo"],
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 1,
+      "evidence_ids": ["ev_a912cbd44100e7ef63d2d190", "ev_85c3f39bdae6cec0f296deb3", "ev_3a03594a4282102e748a7049"]
+    }
+  },
+  {
+    "op": "add",
+    "target": "node",
+    "record": {
+      "node_type": "interpretation",
+      "title": "2. TB-500 (thymosin beta-4 fragment)",
+      "body": "**Main effects:** Marketing emphasizes tissue repair, mobility, cell migration, and angiogenesis. RUO TB-500 is a short thymosin beta-4 fragment; research on full-length thymosin beta-4 cannot be transferred to the fragment.\n\n**Side effects and uncertainty:** FDA reports no human exposure data for the TB-500 fragment and flags immunogenicity, aggregation, and peptide-impurity risks. Its human adverse-event profile is unknown.\n\n**Laboratory sourcing and price:** Public 5 mg listings observed July 25–26, 2026 ranged from $72 to $78. A product labeled TB-500 should be verified against the actual fragment sequence rather than assumed to be full-length thymosin beta-4.\n\n**Ongoing research:** The NCT07487363 search result explicitly describes itself as a fictional example, so it is excluded as evidence of a real program. Full-length thymosin beta-4 trials are related biology, not direct evidence for TB-500.",
+      "tags": ["tb-500", "ruo", "fragment-distinction"],
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 2,
+      "evidence_ids": ["ev_ba4129c33bf95a65f8d362b1", "ev_556afa02c2c4c7f9e2373dba", "ev_3a03594a4282102e748a7049"]
+    }
+  },
+  {
+    "op": "add",
+    "target": "node",
+    "record": {
+      "node_type": "interpretation",
+      "title": "3. CJC-1295",
+      "body": "**Main effects:** CJC-1295 is a long-acting growth-hormone-releasing-hormone analog. A randomized healthy-adult study demonstrated prolonged growth-hormone and IGF-1 increases, establishing pharmacodynamic activity—not proven recovery, body-composition, or performance benefits.\n\n**Side effects and uncertainty:** FDA notes limited clinical data and serious events including increased heart rate and a systemic vasodilatory reaction. Plausible growth-axis concerns include headache, flushing, edema, altered glucose handling, and cardiovascular effects, but RUO incidence is not established.\n\n**Laboratory sourcing and price:** CJC-1295 without DAC, 5 mg, was observed at $41 from one public catalog. DAC and no-DAC forms are not interchangeable; identity testing must resolve the actual molecule.\n\n**Ongoing research:** NCT00267527, a Phase 2 program in HIV-associated visceral obesity, was terminated. No active credible interventional program was identified in the registry search.",
+      "tags": ["cjc-1295", "gh-igf1", "ruo"],
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 3,
+      "evidence_ids": ["ev_921b4bdacb286b4c5027230c", "ev_c3c09c026ae1d1a22c448405", "ev_3a03594a4282102e748a7049"]
+    }
+  },
+  {
+    "op": "add",
+    "target": "node",
+    "record": {
+      "node_type": "interpretation",
+      "title": "4. Ipamorelin",
+      "body": "**Main effects:** Ipamorelin is a ghrelin-receptor growth-hormone secretagogue studied for growth-hormone release and gastrointestinal motility. A randomized Phase 2 postoperative-ileus study provides human context but does not validate broad recovery or performance claims.\n\n**Side effects and uncertainty:** FDA reports serious adverse events, including death, in a literature study using intravenous ipamorelin for gastric motility and says evidence is insufficient for other injectable routes. It also flags immunogenicity, aggregation, impurities, and unnatural-amino-acid concerns.\n\n**Laboratory sourcing and price:** Public 5 mg listings observed July 25–26, 2026 were approximately $43–$53, including a displayed sale price of $46. List price is not a quality metric.\n\n**Ongoing research:** NCT00672074 and NCT01280344 are completed interventional records. No active interventional program clearly testing ipamorelin was identified.",
+      "tags": ["ipamorelin", "gh-igf1", "ruo"],
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 4,
+      "evidence_ids": ["ev_57a38ba80b6ccc05456c94e0", "ev_a849ac98da2bd872f9d3a41d", "ev_3a03594a4282102e748a7049"]
+    }
+  },
+  {
+    "op": "add",
+    "target": "node",
+    "record": {
+      "node_type": "interpretation",
+      "title": "5. GHK-Cu",
+      "body": "**Main effects:** This endogenous copper-binding tripeptide is studied for matrix remodeling, collagen-related signaling, wound repair, and skin biology. Positive work is largely preclinical or topical/cosmetic and does not establish systemic or injectable benefit.\n\n**Side effects and uncertainty:** FDA says human safety information for injectable GHK-Cu is limited and flags immunogenicity, aggregation, and peptide-impurity concerns. Topical irritation is plausible; systemic copper and injectable risks remain poorly characterized.\n\n**Laboratory sourcing and price:** Public 50 mg listings observed July 25–26, 2026 ranged from $58 to $64. Copper loading, identity, purity, and stability should be analytically confirmed for the intended experiment.\n\n**Ongoing research:** Registry searches returned NCT07706361, a not-yet-recruiting patch study, and NCT07437586, a recruiting topical wound-healing record. Both are sponsor-submitted and neither supports injectable RUO use.",
+      "tags": ["ghk-cu", "copper-peptide", "ruo"],
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 5,
+      "evidence_ids": ["ev_bfabd903d6b81272a77f6e5b", "ev_44f1ef1074cc258617538be4", "ev_3a03594a4282102e748a7049"]
+    }
+  },
+  {
+    "op": "add",
+    "target": "node",
+    "record": {
+      "node_type": "gap",
+      "title": "What remains unknown",
+      "body": "A true U.S. popularity ranking requires audited sales or procurement data that are not public. For all five compounds, major gaps include independently replicated human efficacy, route-specific safety, long-term adverse events, validated dosing, interaction data, and reliable post-market surveillance. Future updates should re-check primary publications and verify suspicious or newly posted registry entries before changing conclusions.",
+      "tags": ["evidence-gap", "future-work"],
+      "parent_id": "nod_a88de91015b8464c84f8617a11607c0c",
+      "position": 6
+    }
+  }
+]

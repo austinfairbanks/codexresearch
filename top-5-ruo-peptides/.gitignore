@@ -1,0 +1,10 @@
+# Rebuildable or private Sole Research state
+.soleresearch/
+exports/
+source-copies/
+source-cache/
+extraction-cache/
+transcripts/
+runs/*/transcripts/
+*.tmp
+*.sqlite3

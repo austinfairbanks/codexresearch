@@ -4,16 +4,13 @@ description: Operate and publish a bounded local Sole Research project through i
 ---
 
 # Orchestrate Research
-Keep one primary orchestrator as the only canonical writer. Sources, worker
-results, and discussions remain proposals until the controller accepts them.
-The output is a paper-shaped outline, not paper prose.
+Keep one primary orchestrator as the only canonical writer. Sources, worker results,
+and discussions remain proposals until accepted. Output an outline, not paper prose.
 
-On first use, call `soleresearch_workspace_show`. If no workspace is selected,
-ask the human for one explicit directory and call `soleresearch_workspace_select`.
-Never infer or scan a broader machine path.
-Before publication, call `soleresearch_site_show`; if unconfigured, request the
-Site URL and publisher-credential file path, then call
-`soleresearch_site_configure`. Never request or display credential contents.
+On first use, call `soleresearch_workspace_show`. If no workspace is selected, ask
+for one explicit directory and call `soleresearch_workspace_select`; never scan.
+Before publication, call `soleresearch_site_show`; if unconfigured, request the Site
+URL and publisher-credential path and configure it. Never display credentials.
 ## Ground first
 
 1. Use `soleresearch_status` and `soleresearch_doctor` for an existing project.
@@ -43,7 +40,6 @@ project, entity, actor, and content inputs. Report the returned discussion ID an
 reply in the same discussion before changing canonical state. Keep the human
 turn, reply, promoted takeaway, and graph change distinguishable. Do not record
 general UI feedback, coding requests, or unrelated conversation as research.
-
 For an unrelated top-level question, initialize a new project as an immediate
 workspace child. Each directory owns its ledgers and outline; workspace discovery
 never merges project context or canonical state.
@@ -53,6 +49,9 @@ never merges project context or canonical state.
 - Scaffold one generic question with the human capability. Do not put the token
   or capability record inside the project, selected context, task packet, log,
   or export.
+- Design the graph hierarchy before evidence: evidence-free container topics, then
+  one reviewable child per substantive heading. Verify depth, sibling order, and
+  claim boundaries before attaching exact-locator evidence only to those children.
 - Import sources with `soleresearch_import`. Use inspected content before
   recording evidence. Require page, section, paragraph, figure, table,
   timestamp, or captured-passage locators and an excerpt that resolves exactly.
@@ -105,15 +104,13 @@ Delete/rebuild only the disposable index.
 
 ## Keep the Site current
 
-The Site is a read-only projection, never authoritative state. After a coherent
-local mutation or at turn completion, use `soleresearch_publish` when the
-external mode-0600 publisher token file is configured. Publish only projects
-whose declared data policy is `public_only`; the dashboard is public and has no
-viewer credential. Use
-`soleresearch_publication_status` to report successful and pending revisions. A publish
-failure must be visible but must never roll back, corrupt, or block local
-research. Present the project-scoped Site URL for the in-app browser; if Browser
-is unavailable, provide the same normal clickable URL.
+Make a configured `public_only` Site the primary presentation. It is read-only, never authoritative. After coherent local mutation or turn completion, publish when the external mode-0600 token is configured; report status and the Site URL. Failure must remain visible without damaging local research.
+
+For private data, an unavailable Site, or a non-Codex handoff, do not publish. Use `scripts/serve-dashboard PROJECT [--workspace-dir WORKSPACE]`; it runs `doctor`, stays loopback/read-only, selects a free port, and prints JSON. Never silently broaden access or enable editing.
+
+After a UI, asset, or published-project change with the in-app browser available,
+publish/rebuild, claim and reload the existing tab, wait for settled state, verify
+the behavior, and leave the refreshed tab open. Never require a manual refresh.
 
 Do not bypass access controls, activate paid services, extend budgets, approve
 human authority, install generated adapters, mutate Zotero, merge, push, or

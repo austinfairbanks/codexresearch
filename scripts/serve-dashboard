@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/serve-dashboard PROJECT [--workspace-dir DIR] [--port PORT]
+
+Start the read-only Sole Research dashboard on loopback. If PORT is already in
+use, the server asks the operating system for a free port and prints the final
+URL as JSON. Stop it with Ctrl-C.
+EOF
+}
+
+fail() {
+  printf 'serve-dashboard: %s\n' "$1" >&2
+  exit 2
+}
+
+project=
+workspace=
+port=8765
+
+while (($#)); do
+  case "$1" in
+    --workspace-dir)
+      (($# >= 2)) || fail "--workspace-dir requires a directory"
+      workspace=$2
+      shift 2
+      ;;
+    --port)
+      (($# >= 2)) || fail "--port requires an integer"
+      port=$2
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --*)
+      fail "unknown option: $1"
+      ;;
+    *)
+      [[ -z "$project" ]] || fail "only one project may be supplied"
+      project=$1
+      shift
+      ;;
+  esac
+done
+
+[[ -n "$project" ]] || { usage >&2; exit 2; }
+[[ "$port" =~ ^[0-9]+$ ]] || fail "port must be between 0 and 65535"
+while [[ ${#port} -gt 1 && ${port:0:1} == 0 ]]; do
+  port=${port:1}
+done
+if [[ ${#port} -gt 5 || (${#port} -eq 5 && "$port" > 65535) ]]; then
+  fail "port must be between 0 and 65535"
+fi
+port=$((10#$port))
+[[ -f "$project/project.json" ]] || fail "PROJECT must contain project.json: $project"
+project=$(cd "$project" && pwd -P)
+if [[ -n "$workspace" ]]; then
+  [[ -d "$workspace" ]] || fail "workspace directory does not exist: $workspace"
+  workspace=$(cd "$workspace" && pwd -P)
+fi
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
+repo_root=$(cd "$script_dir/.." && pwd -P)
+runner_kind=
+runner=()
+if command -v sole-research >/dev/null 2>&1; then
+  runner=("$(command -v sole-research)")
+  runner_kind=path
+elif [[ -x "$repo_root/.venv/bin/sole-research" ]]; then
+  runner=("$repo_root/.venv/bin/sole-research")
+  runner_kind=venv
+elif command -v uv >/dev/null 2>&1; then
+  runner=("$(command -v uv)" run --project "$repo_root" sole-research)
+  runner_kind=uv
+elif [[ "$(uname -s)" == Darwin && "$(uname -m)" == arm64 \
+  && -x "$repo_root/integrations/codex/soleresearch/bin/sole-research" \
+  && -n "$(command -v file 2>/dev/null)" \
+  && "$(file -b "$repo_root/integrations/codex/soleresearch/bin/sole-research")" == *Mach-O*arm64* ]]; then
+  runner=("$repo_root/integrations/codex/soleresearch/bin/sole-research")
+  runner_kind=bundled
+else
+  fail "no compatible sole-research runtime was found; install uv as described in docs/LOCAL_DASHBOARD.md"
+fi
+
+"${runner[@]}" doctor "$project"
+
+selected_port=$port
+port_mode=preferred_or_ephemeral
+fallback_enabled=false
+if "${runner[@]}" serve --help 2>&1 | grep -q -- '--fallback-to-free-port'; then
+  fallback_enabled=true
+elif ((port != 0)); then
+  # Older installed or bundled runtimes lack atomic fallback. Port zero avoids
+  # a check-then-bind race while preserving safe compatibility.
+  selected_port=0
+  port_mode=ephemeral_compatibility
+fi
+
+# Every interpolated string below is selected from fixed literals, so this is
+# valid JSON without encoding an arbitrary filesystem path in shell.
+printf '{"event":"soleresearch_dashboard_starting","host":"127.0.0.1","port_requested":%s,"port_selected":%s,"port_mode":"%s","read_only":true,"runner":"%s"}\n' \
+  "$port" "$selected_port" "$port_mode" "$runner_kind"
+
+serve_args=(serve "$project" --host 127.0.0.1 --port "$selected_port")
+if [[ "$fallback_enabled" == true ]]; then
+  serve_args+=(--fallback-to-free-port)
+fi
+if [[ -n "$workspace" ]]; then
+  serve_args+=(--workspace-dir "$workspace")
+fi
+
+# Replacing the shell gives the server direct ownership of Ctrl-C/TERM. Its
+# existing finally block closes the listener before it exits.
+exec "${runner[@]}" "${serve_args[@]}"

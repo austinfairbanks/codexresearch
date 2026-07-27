@@ -355,6 +355,7 @@ def test_ui_redesign_has_semantic_hierarchy_and_local_design_system() -> None:
     package = Path(__file__).parents[1] / "src/soleresearch/ui"
     html = (package / "index.html").read_text(encoding="utf-8")
     css = (package / "app.css").read_text(encoding="utf-8")
+    javascript = (package / "app.js").read_text(encoding="utf-8")
 
     class Structure(HTMLParser):
         def __init__(self) -> None:
@@ -373,6 +374,7 @@ def test_ui_redesign_has_semantic_hierarchy_and_local_design_system() -> None:
     for hidden_status_id in ("project-name", "mode-badge", "save-state", "refresh-state"):
         assert any(attrs.get("id") == hidden_status_id for _tag, attrs in parsed.tags)
     assert any(tag == "section" and attrs.get("class") == "activity-rail" and attrs.get("aria-label") == "Live research activity" for tag, attrs in parsed.tags)
+    assert any(tag == "div" and attrs.get("class") == "activity-mainline" for tag, attrs in parsed.tags)
     for activity_id in ("activity-run-state", "activity-cycle", "activity-controller", "activity-progress", "activity-agent-preview", "activity-telemetry", "activity-agent-list"):
         assert any(attrs.get("id") == activity_id for _tag, attrs in parsed.tags)
     for removed_activity_id in ("activity-gate", "activity-agents", "activity-budget"):
@@ -415,6 +417,9 @@ def test_ui_redesign_has_semantic_hierarchy_and_local_design_system() -> None:
     assert "Authoritative files · exact-locator evidence · visible decisions" not in html
     assert "Research map" in html and "Research inspector" in html
     assert "Task progress" in html and "Agent assignments" in html
+    assert html.index('id="agent-activity"') < html.index('class="activity-overview"')
+    assert "min-height: 72px" in css and "min-height: 148px" not in css
+    assert ".activity-rail.is-idle .activity-detail" in css
     assert "Human gate" not in html and "Assigned workers" not in html and "Budget left" not in html
     assert '>Overview</button>' in html and '>Evidence</button>' in html and '>Notes</button>' in html
     assert 'id="tab-sources"' not in html and 'id="panel-sources"' not in html
@@ -475,6 +480,9 @@ def test_ui_redesign_has_semantic_hierarchy_and_local_design_system() -> None:
     assert ".inline-source-link" in css
     assert ".section-provenance" in css and ".annotation-composer" not in css
     assert ".map-node.map-filtered-out" in css
+    assert "opacity: 1" in css and "filter: none" in css
+    assert ".map-node.map-filter-match" in css
+    assert 'item.classList.toggle("map-filter-match"' in javascript
     assert ".workspace-question-root" in css and ".workspace-branch" in css
     assert "width: var(--workspace-root-size, 280px)" in css
     assert "width: var(--workspace-branch-size, 88px)" in css
@@ -526,6 +534,7 @@ def test_ui_redesign_has_semantic_hierarchy_and_local_design_system() -> None:
 def test_ui_redesign_uses_progressive_disclosure_and_stable_refresh() -> None:
     package = Path(__file__).parents[1] / "src/soleresearch/ui"
     javascript = (package / "app.js").read_text(encoding="utf-8")
+    html = (package / "index.html").read_text(encoding="utf-8")
     for required in (
         'element("blockquote", record.excerpt, "evidence-quote")',
         'element("details")',
@@ -593,7 +602,7 @@ def test_ui_redesign_uses_progressive_disclosure_and_stable_refresh() -> None:
             "function renderPrimaryMap({preserveCamera = false} = {})",
         'element("button", `Root {${rootCount}}`, "map-crumb")',
         'element("button", `Branch {${project.directory}}`, "map-crumb")',
-        "function renderWorkspaceMap()",
+            "function renderWorkspaceMap({preserveCamera = false} = {})",
         'mapCanvas.classList.add("workspace-overview")',
         'mapCanvas.classList.remove("workspace-overview")',
         " workspace-question-root",
@@ -613,7 +622,12 @@ def test_ui_redesign_uses_progressive_disclosure_and_stable_refresh() -> None:
         '? "Branch"',
         ': `Sub-branch ${index}`',
         '? "Leaf"',
-        "function renderActivity()",
+            "function renderActivity()",
+            'activityRail.classList.toggle("has-run", Boolean(run))',
+            'activityRail.classList.toggle("is-idle", !run)',
+            'agentActivity.dataset.autoOpenedRun !== run.run_id',
+            'setText(agentPreview, "No active assignments")',
+            'setText(status, "Project ready for agent research")',
         "function selectNode(nodeId",
         "Individual tool calls are not captured",
         "function selectedResearchContext()",
@@ -685,8 +699,14 @@ def test_ui_redesign_uses_progressive_disclosure_and_stable_refresh() -> None:
         'event.target.closest("[data-project-id][data-target-node-id]")',
         'mapCanvas.addEventListener("wheel"',
         'mapBack.addEventListener("click"',
+        "function returnToPreviousResearchView()",
+        "focusRootId === nodeId && childCount === 0 && evidenceCount",
+        "const evidenceOnlyFocus = preview.dataset.nodeId === focusRootId",
+        "returnToPreviousResearchView()",
     ):
         assert required in javascript
+    assert 'aria-label="Return to previous research view"' in html
+    assert ">← Back</button>" in html
 
 
 def test_ui_primary_map_uses_hierarchical_claims_and_depth_scaled_focus() -> None:
@@ -709,14 +729,14 @@ def test_ui_primary_map_uses_hierarchical_claims_and_depth_scaled_focus() -> Non
         'return "Claim"',
         "function displayClaimTitle(title)",
         "function focusScaleForDepth(depth)",
+        "const focusZoomFactor = .85",
         "const claimNumbers = hierarchicalClaimNumbers(allNodes, byId, children)",
         "const displayTitle = displayClaimTitle(node.title)",
         "map-node-depth-${Math.min(position.depth, 4)}",
         'element("span", `${displayKind} ${claimNumber}`, "node-type")',
         'button.dataset.claimNumber = claimNumber',
         "button.dataset.nodeKind = displayKind",
-        "cameraScale = position.depth === 0",
-        ": Math.max(cameraScale, focusScaleForDepth(position.depth))",
+        "cameraScale = focusScaleForDepth(position.depth) * focusZoomFactor",
         'mapCanvas.classList.toggle("map-focus-active", Boolean(focusRootId))',
         "evidenceAngle: Math.atan2(",
         'parent.classList.toggle("evidence-expanded", expanded)',
@@ -809,18 +829,19 @@ def test_ui_map_first_routes_and_prose_first_sources_are_present() -> None:
     for required in (
         "function routeCue(node)",
         "function appendRouteControl(",
-        "function appendRootPathGuide(",
-        "function positionRootPathGuides()",
-        "function scheduleRootPathGuideLayout()",
-        "rootGuideLayoutFrame = window.requestAnimationFrame",
         'route.className = "map-route-control"',
         'route.dataset.destinationNodeId = destinationId',
-        'route.setAttribute("aria-label", `Follow path to ${destinationTitle}`)',
+        'route.dataset.relationship = relationship',
+        '? `Back to ${destinationTitle}`',
+        'cueNamesDestination ? `Explore ${destinationTitle}` : `Explore ${destinationTitle}: ${cue}`',
+        "route.title = description",
+        "geometry.focusedRouteEdges({nodes: workspaceRouteNodes, focusedId: focusRootId})",
+        "function renderWorkspaceMap({preserveCamera = false} = {})",
+        "renderWorkspaceMap({preserveCamera})",
+        "nodes: nodes.map((node, order) => ({id: node.node_id, parentId: node.parent_id, cue: routeCue(node), order}))",
+        "focusedId: focusRootId",
         "geometry.isRouteActivation({type: event.type, key: event.key})",
-        "if (!routePosition.persistent) return",
-        'button.setAttribute("aria-label", `Follow path to ${destinationTitle}: ${cue}`)',
-        "followRouteToNode(destination.node_id)",
-        "followRouteToNode(destinationId)",
+        "followRouteToNode(edge.destinationId)",
         "expandedBranchIds = new Set(navigation.expandedIds)",
         "renderPrimaryMap({preserveCamera: true})",
         "moveCameraToNode(nodeId, {record: false, focus: true})",
@@ -832,20 +853,19 @@ def test_ui_map_first_routes_and_prose_first_sources_are_present() -> None:
     assert " shows that ${proseClause(node.title)}" not in javascript
     assert ".map-route-control" in css
     assert "min-width: 36px" in css and "min-height: 36px" in css
-    assert ".map-route-cue-label" in css
     assert ".draft-sources" in css
     assert "pointer-events: auto" in css
+    assert 'element("span", cue, "map-route-cue-label")' not in javascript
+    assert "function appendRootPathGuide(" not in javascript
     assert 'satellite.setAttribute("role", "treeitem")' not in javascript
     assert 'const evidenceStage = element("div", null, "map-evidence-stage")' in javascript
     assert 'evidenceStage.setAttribute("role", "presentation")' in javascript
-    assert 'mapCanvas.replaceChildren(stage, evidenceStage, routeStage, ...rootGuides)' in javascript
+    assert 'mapCanvas.replaceChildren(stage, evidenceStage, routeStage)' in javascript
     assert 'function collapseTreeNode(nodeId)' in javascript
     assert 'id="map-canvas" class="map-canvas" role="region"' in html
     assert "if (depth <= 0) return .82" in javascript
-    assert ".map-root-path-guide" in css and ".map-root-path-item" in css
-    assert ".map-canvas.map-focus-root .map-route-control.map-route-root" in css
     split_body = javascript.split("function setSplitPosition(ratio, {announce = false} = {}) {", 1)[1].split("\n}", 1)[0]
-    assert split_body.index('splitWorkspace.style.setProperty("--split-position"') < split_body.index("scheduleRootPathGuideLayout()")
+    assert 'splitWorkspace.style.setProperty("--split-position"' in split_body
 
 
 def test_ui_layout_module_guarantees_dense_collision_free_deterministic_geometry() -> None:
@@ -974,6 +994,68 @@ if (!geometry.boundsAreDisjoint([
   {minX: 0, maxX: 100, minY: 0, maxY: 100},
   {minX: 140, maxX: 240, minY: 0, maxY: 100},
 ], 24)) throw new Error("disjoint project bounds rejected");
+
+const constrainedNodes = [
+  {id: "constrained-source", x: 0, y: 0, radius: 20, depth: 0},
+  {id: "constrained-destination", x: 180, y: 0, radius: 20, depth: 1},
+  {id: "upper-guard", x: 90, y: -150, radius: 100, depth: 1},
+  {id: "lower-guard", x: 90, y: 150, radius: 100, depth: 1},
+];
+const constrainedRoutes = geometry.placeRoutes({
+  edges: [{
+    id: "constrained-route",
+    sourceId: "constrained-source",
+    destinationId: "constrained-destination",
+    cue: "A persistent label that cannot fit",
+    persistent: true,
+  }],
+  nodes: constrainedNodes,
+  targetRadius: 18,
+  clearance: 10,
+});
+if (constrainedRoutes.length !== 1) throw new Error("constrained route control disappeared");
+if (constrainedRoutes[0].persistent) throw new Error("intersecting persistent cue did not degrade to hover-only");
+if (geometry.routeFootprintCircles(constrainedRoutes).length) throw new Error("degraded route retained an invalid cue footprint");
+
+const navigationNodes = [
+  {id: "root", parentId: null, cue: "Understand the question", order: 0},
+  {id: "topic", parentId: "root", cue: "Explore the topic", order: 0},
+  {id: "sibling", parentId: "root", cue: "Explore the sibling", order: 1},
+  {id: "claim-a", parentId: "topic", cue: "Review main effects", order: 0},
+  {id: "claim-b", parentId: "topic", cue: "Review side effects", order: 1},
+  {id: "evidence", parentId: "claim-a", cue: "Inspect evidence", order: 0},
+];
+if (geometry.focusedRouteEdges({nodes: navigationNodes, focusedId: null}).length) {
+  throw new Error("unfocused map exposed arrows");
+}
+const topicRoutes = geometry.focusedRouteEdges({nodes: navigationNodes, focusedId: "topic"});
+if (topicRoutes.length !== 3) throw new Error(`focused topic exposed ${topicRoutes.length} routes`);
+if (topicRoutes[0].relationship !== "parent" || topicRoutes[0].destinationId !== "root") {
+  throw new Error("focused topic omitted its direct parent route");
+}
+if (topicRoutes.slice(1).some((route) => route.relationship !== "child" || !["claim-a", "claim-b"].includes(route.destinationId))) {
+  throw new Error("focused topic exposed a non-child route");
+}
+if (topicRoutes.some((route) => route.destinationId === "evidence" || route.destinationId === "sibling")) {
+  throw new Error("focused topic exposed a grandchild or sibling route");
+}
+const leafRoutes = geometry.focusedRouteEdges({nodes: navigationNodes, focusedId: "claim-b"});
+if (leafRoutes.length !== 1 || leafRoutes[0].relationship !== "parent" || leafRoutes[0].destinationId !== "topic") {
+  throw new Error("leaf navigation was not limited to its direct parent");
+}
+
+const longParentRoute = geometry.placeRoutes({
+  edges: [{id: "long-parent", sourceId: "focused", destinationId: "parent", cue: "Back", relationship: "parent", persistent: false}],
+  nodes: [
+    {id: "focused", x: 0, y: 0, radius: 100, depth: 2},
+    {id: "parent", x: 2000, y: 0, radius: 40, depth: 1},
+  ],
+  targetRadius: 18,
+  clearance: 10,
+})[0];
+if (!longParentRoute || longParentRoute.x < 120 || longParentRoute.x > 160) {
+  throw new Error(`long parent arrow was not anchored near the focused perimeter: ${longParentRoute && longParentRoute.x}`);
+}
 
 const phrases = [
   ["1. Image Filtering", "Smooth, denoise, and sharpen"],
@@ -1216,6 +1298,12 @@ for (const topicCount of [1, 8, 48, 69]) {
         check=False,
     )
     assert completed.returncode == 0, completed.stderr
+
+
+def test_workspace_layout_uses_the_same_clearance_for_placement_and_validation() -> None:
+    javascript = (Path(__file__).parents[1] / "src/soleresearch/ui/app.js").read_text(encoding="utf-8")
+    assert "geometry.layoutForest(records, {clearance: 24, maximumScale: 1.2})" in javascript
+    assert "geometry.validateCircles(workspaceCircles, {clearance: 24})" in javascript
 
 
 def test_ui_state_exposes_run_history_budget_and_unified_graph_audit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

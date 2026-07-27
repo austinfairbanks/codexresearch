@@ -184,6 +184,24 @@ def test_every_grouped_tool_action_matches_argparse_and_declared_required_inputs
     assert scaffold["authority"] == "human_controller"
 
 
+def test_core_serve_catalog_tracks_atomic_port_fallback_parser() -> None:
+    serve = next(item for item in tool_catalog()["tools"] if item["id"] == "core.serve")
+    fallback = next(item for item in serve["inputs"] if item["name"] == "fallback_to_free_port")
+    parsed = _parser().parse_args([
+        "serve", "/tmp/project", "--port", "8765", "--fallback-to-free-port",
+    ])
+
+    assert fallback == {
+        "name": "fallback_to_free_port",
+        "required": False,
+        "type": "boolean",
+        "secret": False,
+    }
+    assert parsed.fallback_to_free_port is True
+    assert "[--fallback-to-free-port]" in serve["command"]
+    assert any("EADDRINUSE" in limit and "port 0" in limit for limit in serve["limits"])
+
+
 def _subparser(parser: argparse.ArgumentParser, dest: str, choice: str) -> argparse.ArgumentParser:
     action = next(
         item for item in parser._actions

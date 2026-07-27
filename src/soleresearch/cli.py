@@ -95,6 +95,11 @@ def _parser() -> argparse.ArgumentParser:
     serve.add_argument("project", type=Path)
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8765)
+    serve.add_argument(
+        "--fallback-to-free-port",
+        action="store_true",
+        help="retry atomically with an OS-assigned port only when the preferred port is in use",
+    )
     serve.add_argument("--edit", action="store_true")
     serve.add_argument("--controller-token-file", type=Path)
     serve.add_argument("--unsafe-non-loopback", action="store_true")
@@ -781,6 +786,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.project,
                 host=args.host,
                 port=args.port,
+                fallback_to_free_port=args.fallback_to_free_port,
                 controller_token=token,
                 edit=args.edit,
                 unsafe_non_loopback=args.unsafe_non_loopback,

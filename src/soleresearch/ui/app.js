@@ -62,7 +62,6 @@ let completionRefreshInFlight = false;
 let completionRefreshQueued = false;
 let tooltipHideTimer = null;
 let tooltipTarget = null;
-let rootGuideLayoutFrame = null;
 
 function element(tag, text, className) {
   const item = document.createElement(tag);
@@ -96,7 +95,6 @@ function setSplitPosition(ratio, {announce = false} = {}) {
   splitRatio = next;
   const percent = Math.round(next * 1000) / 10;
   splitWorkspace.style.setProperty("--split-position", `${percent}%`);
-  scheduleRootPathGuideLayout();
   splitDivider.setAttribute("aria-valuenow", String(Math.round(percent)));
   splitDivider.setAttribute("aria-valuetext", `${Math.round(percent)} percent map, ${100 - Math.round(percent)} percent context`);
   if (announce) liveStatus.textContent = `Workspace split: ${Math.round(percent)} percent map and ${100 - Math.round(percent)} percent context`;
@@ -148,7 +146,7 @@ function safeWebUrl(value) {
   try {
     const parsed = new URL(value);
     return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.href : null;
-  } catch (_error) {
+  } catch {
     return null;
   }
 }
@@ -185,6 +183,8 @@ function appendRichTextParagraphs(item, text, className) {
   });
 }
 
+// Kept as part of the dashboard's stable synthesis-copy contract.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function proseClause(title) {
   const value = displayClaimTitle(title).replace(/[.!?]+$/, "");
   if (/^(Canny|FAST|Gabor|Gaussian|Harris|JPEG|ORB|SIFT|SURF)\b/.test(value)) return value;
@@ -490,11 +490,6 @@ function viewHeader(view, label) {
   const suffix = view.truncated ? "display limit reached" : "complete set";
   header.appendChild(element("p", `${view.items.length} of ${view.total} · ${suffix}`, "view-truth"));
   content.appendChild(header);
-}
-
-function truth(view, label) {
-  const suffix = view.truncated ? " · truncated at local display limit" : " · complete";
-  content.appendChild(element("p", `Showing ${view.items.length} of ${view.total} ${label}${suffix}`, "view-truth"));
 }
 
 function listOrEmpty(items, render, message) {
@@ -809,6 +804,8 @@ function focusScaleForDepth(depth) {
   return 4;
 }
 
+const focusZoomFactor = .85;
+
 function nodeSizeForDepth(depth) {
   if (depth <= 0) return 330;
   if (depth === 1) return 172;
@@ -909,7 +906,7 @@ function appendRouteControl(stage, {
   routePosition,
   destinationTitle,
   cue,
-  rootRoute = false,
+  relationship = "child",
   onActivate,
 }) {
   const route = document.createElement("button");
@@ -917,13 +914,19 @@ function appendRouteControl(stage, {
   route.type = "button";
   route.dataset.sourceNodeId = sourceId;
   route.dataset.destinationNodeId = destinationId;
+  route.dataset.relationship = relationship;
   route.style.left = `${routePosition.x}px`;
   route.style.top = `${routePosition.y}px`;
   route.style.setProperty("--route-angle", `${routePosition.angle || 0}rad`);
-  route.setAttribute("aria-label", `Follow path to ${destinationTitle}`);
+  const cueNamesDestination = String(cue).toLocaleLowerCase().includes(String(destinationTitle).toLocaleLowerCase());
+  const description = relationship === "parent"
+    ? `Back to ${destinationTitle}`
+    : cueNamesDestination ? `Explore ${destinationTitle}` : `Explore ${destinationTitle}: ${cue}`;
+  route.setAttribute("aria-label", description);
+  route.title = description;
   route.appendChild(element("span", "→", "map-route-arrow"));
-  route.classList.toggle("map-route-root", rootRoute);
-  attachMapTooltip(route, `Go to ${destinationTitle} — ${cue}`);
+  route.classList.toggle("map-route-parent", relationship === "parent");
+  attachMapTooltip(route, description);
   const follow = onActivate || (() => followRouteToNode(destinationId));
   const activate = (event) => {
     event.preventDefault();
@@ -935,76 +938,6 @@ function appendRouteControl(stage, {
     if (geometry.isRouteActivation({type: event.type, key: event.key})) activate(event);
   });
   stage.appendChild(route);
-  if (!routePosition.persistent) return;
-  const cueElement = element("span", cue, "map-route-cue-label");
-  cueElement.style.left = `${routePosition.cueX}px`;
-  cueElement.style.top = `${routePosition.cueY}px`;
-  cueElement.style.width = `${routePosition.cueWidth}px`;
-  cueElement.classList.toggle("map-route-cue-root", rootRoute);
-  cueElement.dataset.routeCueFor = destinationId;
-  cueElement.setAttribute("aria-hidden", "true");
-  stage.appendChild(cueElement);
-}
-
-function appendRootPathGuide({rootNode, destinations, routes}) {
-  const guide = element("nav", null, "map-root-path-guide");
-  guide.dataset.rootNodeId = rootNode.node_id;
-  guide.setAttribute("aria-label", `Paths from ${displayClaimTitle(rootNode.title)}`);
-  destinations.forEach((destination, index) => {
-    const routePosition = routes.get(destination.node_id);
-    if (!routePosition) return;
-    const destinationTitle = displayClaimTitle(destination.title);
-    const cue = routeCue(destination);
-    const button = element("button", null, "map-root-path-item");
-    button.type = "button";
-    button.dataset.guideIndex = String(index);
-    button.dataset.destinationNodeId = destination.node_id;
-    button.style.setProperty("--route-angle", `${routePosition.angle || 0}rad`);
-    button.setAttribute("aria-label", `Follow path to ${destinationTitle}: ${cue}`);
-    const arrow = element("span", "→", "map-root-path-arrow");
-    arrow.setAttribute("aria-hidden", "true");
-    const copy = element("span", null, "map-root-path-copy");
-    copy.append(
-      element("strong", cue, "map-root-path-cue"),
-      element("span", destinationTitle, "map-root-path-destination")
-    );
-    button.append(arrow, copy);
-    attachMapTooltip(button, `Go to ${destinationTitle} — ${cue}`);
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      followRouteToNode(destination.node_id);
-    });
-    guide.appendChild(button);
-  });
-  return guide;
-}
-
-function positionRootPathGuides() {
-  Array.from(mapCanvas.querySelectorAll(".map-root-path-guide")).forEach((guide) => {
-    const active = guide.dataset.rootNodeId === focusRootId;
-    guide.classList.toggle("active", active);
-    guide.hidden = !active;
-    guide.setAttribute("aria-hidden", active ? "false" : "true");
-    if (!active) return;
-    const items = Array.from(guide.querySelectorAll(".map-root-path-item"));
-    const layout = geometry.rootGuideLayout({width: mapCanvas.clientWidth, height: mapCanvas.clientHeight, count: items.length});
-    items.forEach((item, index) => {
-      const rect = layout.rects[index];
-      item.style.left = `${rect.x}px`;
-      item.style.top = `${rect.y}px`;
-      item.style.width = `${rect.width}px`;
-      item.style.height = `${rect.height}px`;
-    });
-  });
-}
-
-function scheduleRootPathGuideLayout() {
-  if (rootGuideLayoutFrame !== null) return;
-  rootGuideLayoutFrame = window.requestAnimationFrame(() => {
-    rootGuideLayoutFrame = null;
-    positionRootPathGuides();
-  });
 }
 
 function updateSelectedMapNode() {
@@ -1104,8 +1037,10 @@ function applyMapFilters({announce = false} = {}) {
     const matchesCoverage = coverageMatches(item.dataset.coverageState, filter);
     const visible = matchesText && matchesCoverage;
     item.classList.toggle("map-filtered-out", !visible);
+    item.classList.toggle("map-filter-match", visible && Boolean(query || filter !== "all"));
     if (visible) matches.push(item);
   });
+  mapCanvas.classList.toggle("map-filter-active", Boolean(query || filter !== "all"));
   setText(researchMatchCount, query || filter !== "all" ? `${matches.length} match${matches.length === 1 ? "" : "es"}` : "");
   updateEvidenceSatellites();
   if (announce) liveStatus.textContent = `${matches.length} research map ${matches.length === 1 ? "match" : "matches"}`;
@@ -1130,7 +1065,6 @@ function updateMapCamera() {
   Array.from(mapCanvas.querySelectorAll(".map-route-control")).forEach((route) => {
     route.classList.toggle("route-from-focus", route.dataset.sourceNodeId === focusRootId);
   });
-  positionRootPathGuides();
   setText(mapFit, `Fit · ${Math.round(cameraScale * 100)}%`);
   mapZoomOut.disabled = cameraScale <= .011;
   mapZoomIn.disabled = cameraScale >= 3.99;
@@ -1218,19 +1152,21 @@ function fitGraph({record = false} = {}) {
   liveStatus.textContent = "Continuous graph fit to screen";
 }
 
-function moveCameraToNode(mapNodeId, {record = true, focus = false, selectedId = mapNodeId} = {}) {
+function moveCameraToNode(mapNodeId, {record = true, focus = false, selectedId = mapNodeId, refreshRoutes = true} = {}) {
   const position = graphPositions.get(mapNodeId);
   if (!position) return;
   if (record) cameraHistory.push(cameraState());
   focusRootId = mapNodeId;
   selectedNodeId = selectedId;
   reflectSelectedTopicInUrl();
-  cameraScale = position.depth === 0
-    ? focusScaleForDepth(position.depth)
-    : Math.max(cameraScale, focusScaleForDepth(position.depth));
+  cameraScale = focusScaleForDepth(position.depth) * focusZoomFactor;
   cameraScale = Math.min(4, cameraScale);
   cameraX = -position.x * cameraScale;
   cameraY = -position.y * cameraScale;
+  if (refreshRoutes) {
+    primaryMapSignature = null;
+    renderPrimaryMap({preserveCamera: true});
+  }
   updateSelectedMapNode();
   renderBreadcrumb(activeGraph().byId);
   updateMapCamera();
@@ -1277,6 +1213,29 @@ function collapseTreeNode(nodeId) {
   return true;
 }
 
+function returnToPreviousResearchView() {
+  const previous = cameraHistory.pop();
+  expandedEvidenceParentId = null;
+  primaryMapSignature = null;
+  if (!previous) {
+    renderPrimaryMap({preserveCamera: true});
+    fitGraph();
+    liveStatus.textContent = "Returned to the full research view";
+    return false;
+  }
+  ({focusRootId, selectedNodeId, cameraScale, cameraX, cameraY} = previous);
+  reflectSelectedTopicInUrl();
+  renderPrimaryMap({preserveCamera: true});
+  updateSelectedMapNode();
+  renderBreadcrumb(activeGraph().byId);
+  updateMapCamera();
+  renderedSignatures.map = null;
+  renderInspector({force: true});
+  if (selectedNodeId) surfaceDraftNode(selectedNodeId);
+  liveStatus.textContent = "Camera returned to previous research view";
+  return true;
+}
+
 function selectNode(nodeId) {
   activateTab(document.getElementById("tab-map"));
   if (workspaceOverview) {
@@ -1293,6 +1252,10 @@ function selectNode(nodeId) {
   const depth = node ? nodeDepth(node, graph.byId) : 0;
   const childCount = (graph.children.get(nodeId) || []).length;
   const evidenceCount = node ? (node.evidence_ids || []).length : 0;
+  if (focusRootId === nodeId && childCount === 0 && evidenceCount) {
+    returnToPreviousResearchView();
+    return;
+  }
   const collapsedUnfocused = collapseUnfocusedBranches(nodeId);
   if (depth >= 2 && childCount > 0) {
     const collapse = selectedNodeId === nodeId && expandedBranchIds.has(nodeId);
@@ -1381,7 +1344,7 @@ async function switchWorkspaceProject(projectId, targetNodeId = null) {
   }
 }
 
-function renderWorkspaceMap() {
+function renderWorkspaceMap({preserveCamera = false} = {}) {
   const projects = workspace.projects;
   const signature = JSON.stringify({workspace: projects});
   if (signature === primaryMapSignature && mapCanvas.querySelector(".map-stage")) {
@@ -1454,7 +1417,7 @@ function renderWorkspaceMap() {
         size: root ? rootSizing.size : branchSizing.size,
       };
     });
-    return {project, projectIndex, rootSizing, byId, layout: geometry.layoutForest(records, {clearance: 18, maximumScale: 1.2})};
+    return {project, projectIndex, rootSizing, byId, layout: geometry.layoutForest(records, {clearance: 24, maximumScale: 1.2})};
   });
   const columns = Math.max(1, Math.ceil(Math.sqrt(projects.length)));
   const largestProjectWidth = Math.max(...projectLayouts.map(({layout}) => layout.bounds.maxX - layout.bounds.minX), 1);
@@ -1506,17 +1469,14 @@ function renderWorkspaceMap() {
     if (source && target) edges.appendChild(svgElement("line", {x1: source.x, y1: source.y, x2: target.x, y2: target.y, class: "map-edge map-edge-contains"}));
   });
   stage.appendChild(edges);
-  const workspaceRouteEdges = Array.from(previewNodes, ([key, {project, node}]) => {
-    const sourceId = `workspace:${project.project_id}:${node.parent_id}`;
-    const source = node.parent_id ? graphPositions.get(sourceId) : null;
-    return source ? {
-      id: `${project.project_id}:${node.parent_id}:${node.node_id}`,
-      sourceId,
-      destinationId: key,
-      cue: routeCue(node),
-      persistent: source.depth === 0,
-    } : null;
-  }).filter(Boolean);
+  const workspaceRouteNodes = Array.from(previewNodes, ([key, {project, node}], order) => ({
+    id: key,
+    parentId: node.parent_id ? `workspace:${project.project_id}:${node.parent_id}` : null,
+    cue: routeCue(node),
+    order,
+  }));
+  const workspaceRouteEdges = geometry.focusedRouteEdges({nodes: workspaceRouteNodes, focusedId: focusRootId});
+  const workspaceRouteMetadata = new Map(workspaceRouteEdges.map((edge) => [edge.destinationId, edge]));
   const occupiedWorkspaceCircles = workspaceCircles.slice();
   previewNodes.forEach(({project, node, isRoot, rootSizing, branchSizing, projectIndex}, key) => {
     const position = graphPositions.get(key);
@@ -1594,21 +1554,18 @@ function renderWorkspaceMap() {
   const workspaceRouteValues = Array.from(workspaceRoutes.values());
   const workspaceRouteFootprints = geometry.routeFootprintCircles(workspaceRouteValues);
   const workspaceRouteTargets = geometry.routeTargetCircles(workspaceRouteValues);
-  previewNodes.forEach(({project, node}) => {
-    if (!node.parent_id) return;
-    const sourceId = `workspace:${project.project_id}:${node.parent_id}`;
-    const destinationId = `workspace:${project.project_id}:${node.node_id}`;
-    const source = graphPositions.get(sourceId);
-    const routePosition = workspaceRoutes.get(destinationId);
-    if (!source || !routePosition) return;
+  workspaceRouteEdges.forEach((edge) => {
+    const preview = previewNodes.get(edge.destinationId);
+    const routePosition = workspaceRoutes.get(edge.destinationId);
+    if (!preview || !routePosition) return;
     appendRouteControl(routeStage, {
-      sourceId,
-      destinationId,
+      sourceId: edge.sourceId,
+      destinationId: edge.destinationId,
       routePosition,
-      destinationTitle: node.title,
-      cue: routeCue(node),
-      rootRoute: source.depth === 0,
-      onActivate: () => selectNode(destinationId),
+      destinationTitle: preview.node.title,
+      cue: edge.cue,
+      relationship: workspaceRouteMetadata.get(edge.destinationId).relationship,
+      onActivate: () => selectNode(edge.destinationId),
     });
   });
   const finalWorkspaceCircles = [...occupiedWorkspaceCircles, ...workspaceRouteTargets, ...workspaceRouteFootprints];
@@ -1624,18 +1581,19 @@ function renderWorkspaceMap() {
   mapCanvas.replaceChildren(stage, evidenceStage, routeStage);
   renderBreadcrumb(new Map());
   applyMapFilters();
-  fitGraph();
+  if (preserveCamera) updateMapCamera();
+  else fitGraph();
 }
 
 function renderPrimaryMap({preserveCamera = false} = {}) {
   if (!snapshot) return;
   if (workspaceOverview && workspace && workspace.projects.length > 1) {
-    renderWorkspaceMap();
+    renderWorkspaceMap({preserveCamera});
     return;
   }
   mapCanvas.classList.remove("workspace-overview");
   const graph = activeGraph();
-  const {nodeView, edgeView, nodes: allNodes, byId, children} = graph;
+  const {edgeView, nodes: allNodes, byId, children} = graph;
   if (!byId.has(selectedNodeId)) {
     const preferred = allNodes.find((node) => node.node_type === "question" && !node.parent_id) || allNodes[0];
     selectedNodeId = preferred ? preferred.node_id : null;
@@ -1700,13 +1658,11 @@ function renderPrimaryMap({preserveCamera = false} = {}) {
     edges.appendChild(svgElement("path", {d: `M ${source.x} ${source.y} Q ${middleX} ${middleY} ${target.x} ${target.y}`, class: `map-edge map-edge-${edge.edge_type}`}));
   });
   stage.appendChild(edges);
-  const routeEdges = nodes.filter((node) => graphPositions.has(node.parent_id)).map((node) => ({
-    id: `${node.parent_id}:${node.node_id}`,
-    sourceId: node.parent_id,
-    destinationId: node.node_id,
-    cue: routeCue(node),
-    persistent: graphPositions.get(node.parent_id).depth === 0,
-  }));
+  const routeEdges = geometry.focusedRouteEdges({
+    nodes: nodes.map((node, order) => ({id: node.node_id, parentId: node.parent_id, cue: routeCue(node), order})),
+    focusedId: focusRootId,
+  });
+  const routeMetadata = new Map(routeEdges.map((edge) => [edge.destinationId, edge]));
   const occupiedCircles = visibleCircles.slice();
   nodes.forEach((node) => {
     const position = graphPositions.get(node.node_id);
@@ -1790,32 +1746,27 @@ function renderPrimaryMap({preserveCamera = false} = {}) {
   const routeValues = Array.from(routes.values());
   const routeFootprints = geometry.routeFootprintCircles(routeValues);
   const routeTargets = geometry.routeTargetCircles(routeValues);
-  nodes.forEach((node) => {
-    const source = graphPositions.get(node.parent_id);
-    const routePosition = routes.get(node.node_id);
-    if (!source || !routePosition) return;
+  routeEdges.forEach((edge) => {
+    const destination = byId.get(edge.destinationId);
+    const routePosition = routes.get(edge.destinationId);
+    if (!destination || !routePosition) return;
     appendRouteControl(routeStage, {
-      sourceId: node.parent_id,
-      destinationId: node.node_id,
+      sourceId: edge.sourceId,
+      destinationId: edge.destinationId,
       routePosition,
-      destinationTitle: displayClaimTitle(node.title),
-      cue: routeCue(node),
-      rootRoute: source.depth === 0,
-      onActivate: () => followRouteToNode(node.node_id),
+      destinationTitle: displayClaimTitle(destination.title),
+      cue: edge.cue,
+      relationship: routeMetadata.get(edge.destinationId).relationship,
+      onActivate: () => followRouteToNode(edge.destinationId),
     });
   });
-  const rootGuides = nodes.filter((node) => graphPositions.get(node.node_id)?.depth === 0).map((rootNode) => appendRootPathGuide({
-    rootNode,
-    destinations: (children.get(rootNode.node_id) || []).filter((child) => visibleIds.has(child.node_id)),
-    routes,
-  }));
   graphBounds = geometry.boundsForCircles([...occupiedCircles, ...routeTargets, ...routeFootprints], 18) || graphBounds;
   if (!nodes.length) stage.appendChild(element("p", "No graph nodes yet. Ask the orchestrator to create the first research question.", "empty"));
-  mapCanvas.replaceChildren(stage, evidenceStage, routeStage, ...rootGuides);
+  mapCanvas.replaceChildren(stage, evidenceStage, routeStage);
   applyMapFilters();
   renderBreadcrumb(byId);
   if (preserveCamera) updateMapCamera();
-  else if (focusRootId && graphPositions.has(focusRootId)) moveCameraToNode(focusRootId, {record: false});
+  else if (focusRootId && graphPositions.has(focusRootId)) moveCameraToNode(focusRootId, {record: false, refreshRoutes: false});
   else fitGraph();
 }
 
@@ -1835,7 +1786,11 @@ function renderActivity() {
   const progress = document.getElementById("activity-progress");
   const agentPreview = document.getElementById("activity-agent-preview");
   const telemetry = document.getElementById("activity-telemetry");
+  const activityRail = document.getElementById("activity-rail");
+  const agentActivity = document.getElementById("agent-activity");
   const needsAttention = Boolean(run && (run.status === "paused" || run.gate.status === "human_review" || (run.gate.pending_decisions || []).length));
+  activityRail.classList.toggle("has-run", Boolean(run));
+  activityRail.classList.toggle("is-idle", !run);
   indicator.classList.toggle("active", Boolean(run && run.status === "active" && !needsAttention));
   indicator.classList.toggle("attention", needsAttention);
   if (run) {
@@ -1844,6 +1799,11 @@ function renderActivity() {
     const completedTasks = tasks.filter((task) => task.status === "completed");
     const pendingDecisions = run.gate.pending_decisions || [];
     const lastEvent = run.events.length ? run.events[run.events.length - 1] : null;
+    detail.hidden = false;
+    if (assignedTasks.length && agentActivity.dataset.autoOpenedRun !== run.run_id) {
+      agentActivity.open = true;
+      agentActivity.dataset.autoOpenedRun = run.run_id;
+    }
     setText(runState, humanize(run.status));
     setText(cycle, `Cycle ${run.current_cycle}`);
     setText(controller, `${humanize(run.controller)} controller`);
@@ -1899,15 +1859,18 @@ function renderActivity() {
         : "No worker assignments were recorded for this run.", "agent-activity-empty"));
     }
   } else {
-    setText(status, "No orchestration run is attached to this project");
-    setText(detail, latestAudit ? `Latest authoritative action: ${humanize(latestAudit.type)} · ${latestAudit.at}. No agent or tool-call telemetry was recorded for this synthesis.` : "No run or audit activity has been recorded yet.");
+    setText(status, "Project ready for agent research");
+    setText(detail, latestAudit ? `Latest authoritative action: ${humanize(latestAudit.type)} · ${latestAudit.at}.` : "No run or audit activity has been recorded yet.");
+    detail.hidden = true;
     setText(runState, "No run");
     setText(cycle, "Cycle —");
     setText(controller, "Controller —");
     setText(progress, "0 tasks");
-    setText(agentPreview, "No orchestration run attached");
+    setText(agentPreview, "No active assignments");
     setText(telemetry, "No run telemetry recorded");
-    agentList.replaceChildren(element("p", "Start a bounded orchestration run to see worker assignments and their evidence strategies here.", "agent-activity-empty"));
+    agentActivity.open = false;
+    delete agentActivity.dataset.autoOpenedRun;
+    agentList.replaceChildren(element("p", "No agents are currently assigned to this project.", "agent-activity-empty"));
   }
   setText(document.getElementById("activity-sources"), snapshot.views.sources.total);
   setText(document.getElementById("activity-evidence"), snapshot.views.evidence.total);
@@ -2552,22 +2515,21 @@ mapZoomIn.addEventListener("click", () => {
 });
 mapFit.addEventListener("click", () => fitGraph({record: true}));
 mapBack.addEventListener("click", () => {
-  const previous = cameraHistory.pop();
-  if (!previous) return;
-  ({focusRootId, selectedNodeId, cameraScale, cameraX, cameraY} = previous);
-  reflectSelectedTopicInUrl();
-  updateSelectedMapNode();
-  renderBreadcrumb(activeGraph().byId);
-  updateMapCamera();
-  renderedSignatures.map = null;
-  renderInspector({force: true});
-  if (selectedNodeId) surfaceDraftNode(selectedNodeId);
-  liveStatus.textContent = "Camera returned to previous research view";
+  returnToPreviousResearchView();
 });
 mapCanvas.addEventListener("pointerdown", (event) => {
   const preview = event.target.closest("[data-project-id][data-target-node-id]");
   if (workspaceOverview && preview && !preview.disabled) {
     event.preventDefault();
+    const previewNode = activeGraph().byId.get(preview.dataset.targetNodeId);
+    const evidenceOnlyFocus = preview.dataset.nodeId === focusRootId
+      && previewNode
+      && !(activeGraph().children.get(previewNode.node_id) || []).length
+      && (previewNode.evidence_ids || []).length;
+    if (evidenceOnlyFocus) {
+      returnToPreviousResearchView();
+      return;
+    }
     liveStatus.textContent = "Opening question directory…";
     switchWorkspaceProject(preview.dataset.projectId, preview.dataset.targetNodeId).catch((error) => {
       liveStatus.textContent = `Question load failed: ${error.message}`;
