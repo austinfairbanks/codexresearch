@@ -11,6 +11,10 @@ authority on disk; the Site receives only a bounded versioned projection and
 keeps revision history in managed D1 storage. The packaged runtime needs no
 Python or Node installation on the target machine.
 
+## License
+
+Sole Research is available under the [MIT License](LICENSE).
+
 ## Try the transition locally
 
 The checked-in plugin currently includes the macOS arm64 standalone runtime.

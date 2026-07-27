@@ -16,6 +16,12 @@ test("packages the full read-only dashboard instead of the starter", async () =>
   assert.match(html, /id="map-canvas"/);
   assert.match(html, /id="outline-editor"[^>]*readonly/);
   assert.match(app, /fetch\("\/api\/v1\/workspace"/);
+  assert.match(app, /function renderEmptyWorkspaceMap\(\)/);
+  assert.match(app, /Research question/);
+  assert.match(app, /Research branch/);
+  assert.match(app, /Evidence/);
+  assert.match(app, /if \(!workspace\.projects\.length\)/);
+  assert.match(css, /body\.empty-workspace/);
   assert.match(layout, /SoleResearchLayout/);
   assert.match(css, /\.split-workspace/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/);
@@ -29,10 +35,18 @@ test("build output contains Sites metadata, migrations, worker, and dashboard", 
     access(new URL("dist/.openai/hosting.json", root)),
     access(new URL("dist/.openai/drizzle/0000_chemical_silver_centurion.sql", root)),
     access(new URL("dist/.openai/drizzle/0001_fast_longshot.sql", root)),
+    access(new URL("dist/.openai/drizzle/0002_remove_outsole_demo.sql", root)),
   ]);
   const hosting = JSON.parse(await readFile(new URL("dist/.openai/hosting.json", root), "utf8"));
   assert.equal(hosting.d1, "DB");
   assert.equal(hosting.r2, null);
+});
+
+test("removes only the obsolete outsole demo from production storage", async () => {
+  const migration = await readFile(new URL("drizzle/0002_remove_outsole_demo.sql", root), "utf8");
+  assert.match(migration, /DELETE FROM `revisions` WHERE `project_id` = 'prj_fe682aed09914e4e835882ad221117fd'/);
+  assert.match(migration, /DELETE FROM `projects` WHERE `project_id` = 'prj_fe682aed09914e4e835882ad221117fd'/);
+  assert.doesNotMatch(migration, /DELETE FROM `projects`;|DELETE FROM `revisions`;/);
 });
 
 test("publisher is authenticated, bounded, revision-safe, and browser routes stay read-only", async () => {

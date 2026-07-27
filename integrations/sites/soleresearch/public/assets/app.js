@@ -83,6 +83,67 @@ function projectApi(path) {
   return activeProjectId ? `${path}?project=${encodeURIComponent(activeProjectId)}` : path;
 }
 
+function renderEmptyWorkspaceMap() {
+  document.body.classList.add("empty-workspace");
+  activeProjectId = null;
+  workspaceOverview = false;
+  snapshot = null;
+  selectedNodeId = null;
+  focusRootId = null;
+  cameraHistory = [];
+  primaryMapSignature = "empty-workspace";
+  graphPositions = new Map();
+
+  const nodes = [
+    {title: "Research question", kind: "Root", x: -330, y: 0, size: 280, className: "illustrative-question"},
+    {title: "Research branch", kind: "Topic", x: 40, y: 0, size: 178, className: "illustrative-branch"},
+    {title: "Evidence", kind: "Record", x: 315, y: 0, size: 112, className: "illustrative-evidence"},
+  ];
+  graphBounds = {
+    minX: nodes[0].x - nodes[0].size / 2,
+    maxX: nodes[2].x + nodes[2].size / 2,
+    minY: -nodes[0].size / 2,
+    maxY: nodes[0].size / 2,
+  };
+
+  const stage = element("div", null, "map-stage illustrative-map-stage");
+  stage.setAttribute("role", "img");
+  stage.setAttribute("aria-label", "Example research structure: research question, research branch, and evidence");
+  const edges = svgElement("svg", {class: "map-edges", "aria-hidden": "true"});
+  for (let index = 1; index < nodes.length; index += 1) {
+    edges.appendChild(svgElement("line", {
+      x1: nodes[index - 1].x,
+      y1: nodes[index - 1].y,
+      x2: nodes[index].x,
+      y2: nodes[index].y,
+      class: "map-edge map-edge-contains",
+    }));
+  }
+  stage.appendChild(edges);
+  nodes.forEach((node) => {
+    const item = element("div", null, `map-node illustrative-map-node ${node.className}`);
+    item.style.left = `${node.x}px`;
+    item.style.top = `${node.y}px`;
+    item.style.width = `${node.size}px`;
+    item.style.height = `${node.size}px`;
+    item.append(
+      element("span", node.kind, "node-type"),
+      element("span", node.title, "map-node-title")
+    );
+    stage.appendChild(item);
+  });
+
+  mapCanvas.classList.add("workspace-overview", "illustrative-map");
+  mapCanvas.replaceChildren(stage);
+  mapBreadcrumb.replaceChildren(element("span", "Example structure · replaced by your first project", "empty-map-label"));
+  setText(document.getElementById("project-name"), "Sole Research");
+  setText(refreshState, "Waiting for first project");
+  cameraScale = geometry.fitScaleForBounds(graphBounds, mapCanvas.clientWidth, mapCanvas.clientHeight);
+  cameraX = -((graphBounds.minX + graphBounds.maxX) / 2) * cameraScale;
+  cameraY = -((graphBounds.minY + graphBounds.maxY) / 2) * cameraScale;
+  updateMapCamera();
+}
+
 function splitLimits() {
   const width = Math.max(splitWorkspace.clientWidth - splitDivider.offsetWidth, 1);
   const minimum = Math.max(.22, Math.min(.4, 280 / width));
@@ -2298,6 +2359,15 @@ async function loadState({announce = false} = {}) {
   const nextWorkspace = await workspaceResponse.json();
   const firstWorkspaceLoad = workspace === null;
   workspace = nextWorkspace;
+  if (!workspace.projects.length) {
+    renderEmptyWorkspaceMap();
+    enableLoadedMode();
+    if (announce) liveStatus.textContent = "Example research structure shown until the first project is published";
+    return;
+  }
+  document.body.classList.remove("empty-workspace");
+  mapCanvas.classList.remove("illustrative-map");
+  if (primaryMapSignature === "empty-workspace") primaryMapSignature = null;
   if (!activeProjectId || !workspace.projects.some((item) => item.project_id === activeProjectId)) activeProjectId = workspace.default_project_id;
   if (firstWorkspaceLoad && workspace.projects.length > 1) workspaceOverview = true;
   const [outlineResponse, stateResponse] = await Promise.all([
