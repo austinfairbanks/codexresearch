@@ -1,6 +1,6 @@
 # Codex Plugin + Sites Transition Status
 
-Status date: 2026-07-20
+Status date: 2026-07-27
 
 The transition is implemented as a macOS arm64 developer preview. The local
 files remain authoritative, the installed Codex plugin launches a standalone
@@ -17,10 +17,21 @@ fallback.
 | Site | Public production deployment, no viewer authentication, D1 persistence, read-only dashboard, complete project route contract, bounded collection paging, live revision polling |
 | MCP | Protocol handshake, strict named tools, catalog mapping, explicit workspace selection, immediate-child confinement |
 | Plugin | Personal-marketplace install/update/rollback/uninstall/reinstall canaries, native hook, standalone macOS arm64 runtime, checksum, deterministic 28-package SPDX SBOM; no target Python, Node, `uv`, or `pnpm` |
-| Compatibility | Existing CLI/HTTP dashboard retained; isolated native init/write/projection/MCP verification, 274 Python tests, and 5 Site tests pass |
+| Compatibility | Existing CLI/HTTP dashboard retained; isolated native init/write/projection/MCP verification, 289 Python tests, and 6 Site tests pass |
 
 The public deployment is `https://sole-research.general992066.chatgpt.site`.
 Anyone with the URL may view it; only the local publisher can upload revisions.
+
+## Current production release
+
+- Site version: 5
+- Source commit: `3b1785cd09f861493c9c3677f687be68312c710d`
+- Repository commit: `574e4d8781cb63ab581a2074d0a91ec9629b72cd`
+- Deployment status: succeeded
+- Live URL: `https://sole-research.general992066.chatgpt.site`
+- Published project revision: none; the obsolete outsole demo was removed and
+  the empty workspace now shows a client-only illustrative map until a real
+  project is published.
 
 ## External release gates still required
 
