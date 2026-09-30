@@ -62,6 +62,80 @@ let completionRefreshInFlight = false;
 let completionRefreshQueued = false;
 let tooltipHideTimer = null;
 let tooltipTarget = null;
+let stateRequestId = 0;
+let projectNavigationId = 0;
+let contentsSignature = null;
+let searchResultsSignature = null;
+let lastSuccessfulRead = null;
+const initialContext = new URLSearchParams(window.location.hash.slice(1));
+
+function setWorkspacePane(pane, {focus = false} = {}) {
+  document.body.dataset.workspacePane = pane;
+  document.querySelectorAll("[data-workspace-pane]").forEach((button) => {
+    if (button === document.body) return;
+    button.setAttribute("aria-pressed", String(button.dataset.workspacePane === pane));
+    if (focus && button.dataset.workspacePane === pane) button.focus();
+  });
+  if (pane !== "context" && snapshot) {
+    if (!focusRootId) fitGraph();
+    else updateMapCamera();
+  }
+}
+
+function renderReaderContents() {
+  const list = document.getElementById("reader-contents-list");
+  if (!list || !snapshot) return;
+  const graph = activeGraph();
+  const numbers = hierarchicalClaimNumbers(graph.nodes, graph.byId, graph.children);
+  const signature = JSON.stringify([activeProjectId, graph.nodes, selectedNodeId]);
+  const selected = graph.byId.get(selectedNodeId);
+  const selection = document.getElementById("context-selection");
+  if (selection) {
+    selection.hidden = !selected;
+    const parent = selected && graph.byId.get(selected.parent_id);
+    setText(selection, selected ? selected.node_type === "question" ? "Research question"
+      : `${parent && parent.node_type !== "question" ? `${displayClaimTitle(parent.title)} / ` : ""}${displayClaimTitle(selected.title)}` : "");
+  }
+  if (signature === contentsSignature) return;
+  contentsSignature = signature;
+  const fragment = document.createDocumentFragment();
+  const appendNodes = (parentId) => (graph.children.get(parentId) || []).forEach((node) => {
+    const number = numbers.get(node.node_id);
+    const button = element("button", `${number ? `${number}. ` : ""}${displayClaimTitle(node.title)}`, "reader-contents-link");
+    button.type = "button";
+    button.style.setProperty("--section-depth", Math.min(nodeDepth(node, graph.byId), 4));
+    if (node.node_id === selectedNodeId) button.setAttribute("aria-current", "location");
+    button.addEventListener("click", () => {
+      selectDraftNode(node.node_id);
+      activateContextTab("draft");
+      document.getElementById("reader-contents").open = false;
+      const section = outlinePreview.querySelector(`[data-outline-node-id="${node.node_id}"]`);
+      if (section) section.focus({preventScroll: true});
+    });
+    fragment.appendChild(button);
+    appendNodes(node.node_id);
+  });
+  appendNodes(null);
+  if (!graph.nodes.length) fragment.appendChild(element("p", "No sections yet.", "scope-note"));
+  if (graph.nodeView.truncated) fragment.appendChild(element("p", "Only loaded sections are listed.", "scope-note"));
+  list.replaceChildren(fragment);
+}
+
+function setConnectionStatus(error = null) {
+  const status = document.getElementById("connection-status");
+  const retry = document.getElementById("retry-load");
+  if (!status || !retry) return;
+  status.classList.toggle("is-stale", Boolean(error));
+  retry.hidden = !error;
+  if (error) {
+    setText(status, lastSuccessfulRead ? "Connection lost. Showing the last loaded version." : "Could not load this project.");
+    status.title = error.message;
+  } else {
+    lastSuccessfulRead = new Date();
+    setText(status, snapshot?.publication ? `Published revision ${snapshot.publication.published_revision}` : "Local preview · read only");
+    status.title = `Last checked ${lastSuccessfulRead.toLocaleTimeString()}. Reloads when research files change.`;
+  }
+}
 
 function element(tag, text, className) {
   const item = document.createElement(tag);
@@ -193,12 +267,12 @@ function routeCue(node) {
 
 function coverageLabel(state) {
   return ({
-    linked_support: "Supported by sources",
-    linked_context: "Sources provide context",
-    conflicting_evidence: "Sources disagree",
+    linked_support: "Supporting evidence linked",
+    linked_context: "Context evidence linked",
+    conflicting_evidence: "Contradicting evidence linked",
     graph_conflict: "Ideas need reconciliation",
     open_gap: "Open gap",
-    unlinked: "Needs evidence",
+    unlinked: "No directly linked evidence",
   })[state] || humanize(state);
 }
 
@@ -395,30 +469,32 @@ function renderOutlinePreview(markdown) {
       appendInlineLinks(synthesis, text);
       return [synthesis];
     }
-    const reasoning = text.match(/\b(Inference|Interpretation):\s*/);
-    if (reasoning) {
-      const evidenceText = text.slice(0, reasoning.index).trim();
-      const interpretationText = text.slice(reasoning.index + reasoning[0].length).trim();
+    const defaultLabel = ({gap: "Limitation", interpretation: "Interpretation", conclusion: "Conclusion", evidence: "Evidence"})[nodeType] || null;
+    function paragraphFor(body, label = defaultLabel) {
+      const className = label === "Fact" || label === "Evidence" ? "draft-evidence"
+        : ["Limitation", "Missing evidence", "Open question"].includes(label) ? "draft-limitation"
+          : label ? "draft-interpretation" : "";
+      const item = label ? labeledParagraph(label, className) : element("p", null, "draft-prose");
+      if (label === "Fact") appendEvidenceText(item, `Fact: ${body}`);
+      else appendInlineLinks(item, body);
+      return item;
+    }
+    const markers = Array.from(text.matchAll(/\b(Fact|Evidence|Inference|Interpretation|Conclusion|Missing evidence|Open question|Limitation):\s*/g));
+    if (markers.length) {
       const items = [];
-      if (evidenceText) {
-        const evidence = labeledParagraph("Evidence", "draft-evidence");
-        appendEvidenceText(evidence, evidenceText);
-        items.push(evidence);
-      }
-      if (interpretationText) {
-        const interpretation = labeledParagraph(reasoning[1] === "Inference" ? "Interpretation" : reasoning[1], "draft-interpretation");
-        appendInlineLinks(interpretation, interpretationText);
-        items.push(interpretation);
-      }
+      const introduction = text.slice(0, markers[0].index).trim();
+      if (introduction) items.push(paragraphFor(introduction));
+      markers.forEach((marker, index) => {
+        const end = index + 1 < markers.length ? markers[index + 1].index : text.length;
+        const body = text.slice(marker.index + marker[0].length, end).trim();
+        if (body) items.push(paragraphFor(body, marker[1]));
+      });
       return items;
     }
-    const missingEvidence = text.match(/^Missing evidence\s*(?::|includes)?\s*/i);
-    const label = nodeType === "gap" || missingEvidence ? "Limitation" : nodeType === "interpretation" ? "Interpretation" : "Evidence";
-    const item = labeledParagraph(label, label === "Limitation" ? "draft-limitation" : label === "Interpretation" ? "draft-interpretation" : "draft-evidence");
-    const body = missingEvidence ? text.slice(missingEvidence[0].length).trim().replace(/^includes\s+/i, "") : text;
-    if (label === "Evidence") appendEvidenceText(item, body);
-    else appendInlineLinks(item, body);
-    return [item];
+    const missingEvidence = text.match(/^Missing evidence\s+includes\s*/i);
+    return [missingEvidence
+      ? paragraphFor(text.slice(missingEvidence[0].length).trim(), "Missing evidence")
+      : paragraphFor(text)];
   }
 
   function flushParagraph() {
@@ -477,6 +553,7 @@ function renderOutlinePreview(markdown) {
       section.tabIndex = 0;
       section.addEventListener("click", () => selectDraftNode(nodeAnchor[1]));
       section.addEventListener("keydown", (event) => {
+        if (event.target !== section) return;
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           selectDraftNode(nodeAnchor[1]);
@@ -641,46 +718,48 @@ function details(label, lines) {
 }
 
 function surfaceDraftNode(nodeId, {scroll = true} = {}) {
+  renderReaderContents();
   const sections = Array.from(outlinePreview.querySelectorAll("[data-outline-node-id]"));
   sections.forEach((section) => section.classList.toggle("draft-focus", section.dataset.outlineNodeId === nodeId));
   const target = sections.find((section) => section.dataset.outlineNodeId === nodeId);
   if (!target) return false;
   renderDraftProvenance(target, nodeId);
-  if (scroll && activeContextView === "draft") target.scrollIntoView({behavior: "smooth", block: "start"});
+  if (scroll && activeContextView === "draft") target.scrollIntoView({behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start"});
   return true;
 }
 
 function renderDraftProvenance(target, nodeId) {
-  outlinePreview.querySelectorAll(".section-provenance").forEach((item) => item.remove());
-  const node = snapshot && snapshot.views.nodes.items.find((item) => item.node_id === nodeId);
+  if (!snapshot) return;
+  const context = researchContextForNode(nodeId);
+  const node = context.node;
   if (!node) return;
+  const provenanceSignature = JSON.stringify([node, context.nodes, context.evidence, context.evidenceTruncated]);
+  const existing = target.querySelector(".section-provenance");
+  if (existing && existing.provenanceSignature === provenanceSignature) return;
+  outlinePreview.querySelectorAll(".section-provenance").forEach((item) => item.remove());
   const evidenceById = new Map(snapshot.views.evidence.items.map((item) => [item.evidence_id, item]));
   const synthesis = (node.tags || []).includes("terminal-synthesis");
-  let evidenceIds = node.evidence_ids || [];
-  let hiddenBranchCount = 0;
-  if (synthesis) {
-    const graph = activeGraph();
-    const descendants = [];
-    const stack = [...(graph.children.get(nodeId) || [])];
-    hiddenBranchCount = stack.length;
-    while (stack.length) {
-      const descendant = stack.shift();
-      descendants.push(descendant);
-      stack.push(...(graph.children.get(descendant.node_id) || []));
-    }
-    evidenceIds = Array.from(new Set(descendants.flatMap((descendant) => descendant.evidence_ids || [])));
-  }
+  const evidenceIds = Array.from(synthesis ? context.evidenceIds : context.directEvidenceIds);
   const strip = element("aside", null, "section-provenance");
+  strip.provenanceSignature = provenanceSignature;
   strip.setAttribute("aria-label", synthesis ? "Section provenance" : "Claim provenance");
-  const descendantSources = new Set(evidenceIds.map((evidenceId) => evidenceById.get(evidenceId)?.source_id).filter(Boolean));
-  const coverage = synthesis
-    ? {state: evidenceIds.length ? "linked_context" : "unlinked", evidence_count: evidenceIds.length, source_count: descendantSources.size}
-    : node.coverage || {state: "unlinked", evidence_count: 0, source_count: 0};
-  const coverageText = synthesis
-    ? `${coverage.evidence_count} cited evidence · ${coverage.source_count} sources · organized in ${hiddenBranchCount} expandable ${hiddenBranchCount === 1 ? "branch" : "branches"}`
-    : `${coverageLabel(coverage.state)} · ${coverage.evidence_count} evidence · ${coverage.source_count} sources`;
-  strip.appendChild(element("span", coverageText, `coverage-chip coverage-${coverage.state}`));
+  const coverage = node.coverage || {state: context.directEvidenceIds.size ? "linked_context" : "unlinked"};
+  strip.appendChild(element("span", contextCoverageLabel(context), `coverage-chip coverage-${coverage.state}`));
+  strip.appendChild(element("span", contextScopeText(context), "scope-note"));
+  strip.appendChild(element("span", nodeReviewText(node), "review-state"));
+  if (context.evidenceTruncated) strip.appendChild(element("span", "Some linked passages or branches are outside the loaded records.", "scope-note"));
   if (synthesis) {
+    if (evidenceIds.length) {
+      const review = element("button", `Review ${evidenceIds.length} linked ${evidenceIds.length === 1 ? "passage" : "passages"}`, "provenance-link");
+      review.type = "button";
+      review.addEventListener("click", (event) => {
+        event.stopPropagation();
+        activeEvidenceMode = "passages";
+        activateContextTab("inspect");
+        activateTab(document.getElementById("tab-evidence"), true);
+      });
+      strip.appendChild(review);
+    }
     target.appendChild(strip);
     return;
   }
@@ -688,6 +767,7 @@ function renderDraftProvenance(target, nodeId) {
     const evidence = evidenceById.get(evidenceId);
     const jump = element("button", evidence ? evidence.source_title : "Evidence outside displayed set", "provenance-link");
     jump.type = "button";
+    jump.disabled = !evidence;
     jump.addEventListener("click", (event) => {
       event.stopPropagation();
       activateContextTab("inspect");
@@ -713,22 +793,57 @@ function activeGraph() {
   return {nodeView, edgeView, nodes, byId, children};
 }
 
-function selectedResearchContext() {
+function researchContextForNode(nodeId) {
   const graph = activeGraph();
-  const node = graph.byId.get(selectedNodeId) || null;
-  if (!node) return {graph, node, nodes: [], evidence: [], sources: []};
+  const node = graph.byId.get(nodeId) || null;
   const nodes = [];
-  const stack = [node];
+  const visited = new Set();
+  const stack = node ? [node] : [];
   while (stack.length) {
     const current = stack.shift();
+    if (visited.has(current.node_id)) continue;
+    visited.add(current.node_id);
     nodes.push(current);
     stack.push(...(graph.children.get(current.node_id) || []));
   }
-  const evidenceIds = new Set(nodes.flatMap((item) => item.evidence_ids || []));
+  const directEvidenceIds = new Set(node ? node.evidence_ids || [] : []);
+  const branchEvidenceIds = new Set(nodes.slice(1).flatMap((item) => item.evidence_ids || []));
+  const additionalEvidenceIds = new Set(Array.from(branchEvidenceIds).filter((id) => !directEvidenceIds.has(id)));
+  const evidenceIds = new Set([...directEvidenceIds, ...branchEvidenceIds]);
+  const evidenceOwners = new Map();
+  nodes.forEach((owner) => new Set(owner.evidence_ids || []).forEach((id) => {
+    if (!evidenceOwners.has(id)) evidenceOwners.set(id, []);
+    evidenceOwners.get(id).push(owner);
+  }));
   const evidence = snapshot.views.evidence.items.filter((item) => evidenceIds.has(item.evidence_id));
   const sourceIds = new Set(evidence.map((item) => item.source_id).filter(Boolean));
   const sources = snapshot.views.sources.items.filter((item) => sourceIds.has(item.source_id));
-  return {graph, node, nodes, evidence, sources};
+  const missingEvidenceCount = evidenceIds.size - evidence.length;
+  const missingSourceCount = sourceIds.size - sources.length;
+  const nodesTruncated = Boolean(snapshot.views.nodes.truncated);
+  const evidenceTruncated = nodesTruncated || missingEvidenceCount > 0;
+  const sourcesTruncated = evidenceTruncated || missingSourceCount > 0;
+  return {graph, node, nodes, evidence, sources, directEvidenceIds, branchEvidenceIds, additionalEvidenceIds, evidenceIds, evidenceOwners, sourceIds, missingEvidenceCount, missingSourceCount, nodesTruncated, evidenceTruncated, sourcesTruncated};
+}
+
+function selectedResearchContext() {
+  return researchContextForNode(selectedNodeId);
+}
+
+function contextScopeText(context) {
+  return `${context.directEvidenceIds.size} directly linked · ${context.additionalEvidenceIds.size} additional in child branches${context.nodesTruncated ? " shown here" : ""}`;
+}
+
+function contextCoverageLabel(context) {
+  const state = context.node?.coverage?.state || (context.directEvidenceIds.size ? "linked_context" : "unlinked");
+  return state === "unlinked" && context.additionalEvidenceIds.size
+    ? "Evidence linked in child branches"
+    : coverageLabel(state);
+}
+
+function nodeReviewText(node) {
+  const acceptance = ({human_accepted: "Accepted by a human", agent_accepted: "Accepted by an agent", proposed: "Proposed"})[node.authority] || "Acceptance not recorded";
+  return `${humanize(node.maturity)} · ${acceptance}`;
 }
 
 function initializeBranchExpansion({byId, children}) {
@@ -1084,25 +1199,80 @@ function appendEvidenceSatellites(evidenceStage, {parentId, parentDepth = 0, pos
 
 function coverageMatches(state, filter) {
   if (filter === "all") return true;
-  if (filter === "linked") return state === "linked_support" || state === "linked_context";
+  if (filter === "linked") return ["linked_support", "linked_context", "conflicting_evidence"].includes(state);
   if (filter === "conflict") return state === "conflicting_evidence" || state === "graph_conflict";
   return state === filter;
+}
+
+function researchSearchEntries() {
+  if (!snapshot) return [];
+  const projects = workspaceOverview ? workspace.projects.filter((project) => project.available) : [activeWorkspaceProject()];
+  return projects.filter(Boolean).flatMap((project) => {
+    const isActive = project.project_id === activeProjectId;
+    const nodes = isActive ? activeGraph().nodes : project.preview.nodes;
+    const byId = new Map(nodes.map((node) => [node.node_id, node]));
+    const evidenceById = new Map((isActive ? snapshot.views.evidence.items : []).map((record) => [record.evidence_id, record]));
+    return nodes.map((node) => {
+      const parent = byId.get(node.parent_id);
+      const sourceTitles = (node.evidence_ids || []).map((id) => evidenceById.get(id)?.source_title).filter(Boolean);
+      return {
+        nodeId: node.node_id,
+        projectId: project.project_id,
+        title: displayClaimTitle(node.title),
+        scope: parent ? displayClaimTitle(parent.title) : project.name,
+        state: node.coverage?.state || (node.evidence_count ? "linked_context" : node.node_type === "gap" ? "open_gap" : "unlinked"),
+        text: [node.title, node.body, parent?.title, ...sourceTitles].filter(Boolean).join(" ").toLocaleLowerCase(),
+      };
+    });
+  });
+}
+
+function openSearchResult(result) {
+  researchSearch.value = "";
+  coverageFilter.value = "all";
+  applyMapFilters();
+  mapFind.open = false;
+  if (result.projectId !== activeProjectId || workspaceOverview) {
+    switchWorkspaceProject(result.projectId, result.nodeId).catch((error) => {
+      setConnectionStatus(error);
+      liveStatus.textContent = error.message;
+    });
+  } else {
+    selectDraftNode(result.nodeId);
+    const target = Array.from(mapCanvas.querySelectorAll("[data-node-id]")).find((item) => item.dataset.nodeId === result.nodeId);
+    if (target) target.focus({preventScroll: true});
+  }
 }
 
 function applyMapFilters({announce = false} = {}) {
   const query = researchSearch.value.trim().toLocaleLowerCase();
   const filter = coverageFilter.value;
-  const matches = [];
+  const matches = researchSearchEntries().filter((item) => (!query || item.text.includes(query)) && coverageMatches(item.state, filter));
   Array.from(mapCanvas.querySelectorAll("[data-node-id]")).forEach((item) => {
     const matchesText = !query || item.dataset.searchText.includes(query);
     const matchesCoverage = coverageMatches(item.dataset.coverageState, filter);
     const visible = matchesText && matchesCoverage;
     item.classList.toggle("map-filtered-out", !visible);
     item.classList.toggle("map-filter-match", visible && Boolean(query || filter !== "all"));
-    if (visible) matches.push(item);
   });
   mapCanvas.classList.toggle("map-filter-active", Boolean(query || filter !== "all"));
-  setText(researchMatchCount, query || filter !== "all" ? `${matches.length} match${matches.length === 1 ? "" : "es"}` : "");
+  const bounded = snapshot?.views.nodes.truncated || snapshot?.views.evidence.truncated || (workspaceOverview && workspace.projects.some((project) => project.preview.truncated));
+  setText(researchMatchCount, `${matches.length} ${query || filter !== "all" ? "matches" : "sections"}${bounded ? " in loaded records" : ""}`);
+  const results = document.getElementById("map-search-results");
+  const signature = JSON.stringify([matches, query, filter]);
+  if (results && signature !== searchResultsSignature) {
+    searchResultsSignature = signature;
+    results.replaceChildren();
+    matches.slice(0, 40).forEach((match) => {
+      const button = element("button", null, "search-result");
+      button.type = "button";
+      button.append(element("span", match.title), element("span", match.scope, "search-result-meta"));
+      button.addEventListener("click", () => openSearchResult(match));
+      results.appendChild(button);
+    });
+    if (!matches.length) results.appendChild(element("p", "No matching sections. Try another term or clear the filter.", "scope-note"));
+    if (matches.length > 40) results.appendChild(element("p", "Showing the first 40 matches. Refine your search to find a section.", "scope-note"));
+  }
   updateEvidenceSatellites();
   if (announce) liveStatus.textContent = `${matches.length} research map ${matches.length === 1 ? "match" : "matches"}`;
   return matches;
@@ -1135,7 +1305,7 @@ function updateMapCamera() {
 function renderBreadcrumb(byId) {
   const fragment = document.createDocumentFragment();
   const rootCount = workspace ? workspace.projects.length : 1;
-  const overview = element("button", `Root {${rootCount}}`, "map-crumb");
+  const overview = element("button", rootCount > 1 ? `All ${rootCount} questions` : "Full map", "map-crumb");
   overview.type = "button";
   overview.setAttribute("aria-label", `Root: ${rootCount} independent research ${rootCount === 1 ? "question" : "questions"}`);
   overview.title = "All independent research questions";
@@ -1152,7 +1322,7 @@ function renderBreadcrumb(byId) {
   const project = activeWorkspaceProject();
   if (workspace && workspace.projects.length > 1 && project) {
     fragment.appendChild(element("span", "/", "map-crumb-separator"));
-    const projectCrumb = element("button", `Branch {${project.directory}}`, "map-crumb");
+    const projectCrumb = element("button", project.name, "map-crumb");
     projectCrumb.type = "button";
     projectCrumb.setAttribute("aria-label", `Branch directory: ${project.name}`);
     projectCrumb.title = project.name;
@@ -1173,11 +1343,11 @@ function renderBreadcrumb(byId) {
     fragment.appendChild(element("span", "/", "map-crumb-separator"));
     const isLeaf = !(children.get(node.node_id) || []).length;
     const role = isLeaf && index === path.length - 1
-      ? "Leaf"
+      ? "Section"
       : index === 0
-        ? "Branch"
-        : `Sub-branch ${index}`;
-    const crumb = element("button", role, "map-crumb");
+        ? "Question"
+        : "Topic";
+    const crumb = element("button", index === 0 ? "Question" : displayClaimTitle(node.title), "map-crumb");
     crumb.type = "button";
     crumb.setAttribute("aria-label", `${role}: ${node.title}`);
     crumb.title = node.title;
@@ -1372,6 +1542,7 @@ function selectDraftNode(nodeId) {
 
 async function switchWorkspaceProject(projectId, targetNodeId = null) {
   if (!workspace || !workspace.projects.some((item) => item.project_id === projectId && item.available)) return;
+  const navigationId = ++projectNavigationId;
   const overviewReturn = workspaceOverview ? {
     focusRootId: null,
     selectedNodeId: targetNodeId,
@@ -1397,6 +1568,7 @@ async function switchWorkspaceProject(projectId, targetNodeId = null) {
   Object.keys(renderedSignatures).forEach((key) => { renderedSignatures[key] = null; });
   setText(refreshState, "Loading question directory…");
   await loadState({announce: true});
+  if (navigationId !== projectNavigationId || activeProjectId !== projectId || snapshot?.project.project_id !== projectId) return;
   const workspaceNodeId = `workspace:${projectId}:${targetNodeId}`;
   if (targetNodeId && workspaceOverview && graphPositions.has(workspaceNodeId)) {
     moveCameraToNode(workspaceNodeId, {record: false, focus: true, selectedId: targetNodeId});
@@ -1643,6 +1815,7 @@ function renderWorkspaceMap({preserveCamera = false} = {}) {
   renderBreadcrumb(new Map());
   applyMapFilters();
   if (preserveCamera) updateMapCamera();
+  else if (focusRootId && graphPositions.has(focusRootId)) moveCameraToNode(focusRootId, {record: false, selectedId: selectedNodeId, refreshRoutes: false});
   else fitGraph();
 }
 
@@ -1762,7 +1935,7 @@ function renderPrimaryMap({preserveCamera = false} = {}) {
     const evidenceCount = (node.evidence_ids || []).length;
     const nodeFoot = childCount === 0
       ? (evidenceCount ? `${evidenceCount} evidence` : "No evidence")
-      : `${evidenceCount} evidence · ${childCount} ${childCount === 1 ? "branch" : "branches"}${collapsible ? ` · ${branchExpanded ? "expanded" : "collapsed"}` : ""}`;
+      : `${evidenceCount} direct · ${childCount} ${childCount === 1 ? "branch" : "branches"}${collapsible ? ` · ${branchExpanded ? "expanded" : "collapsed"}` : ""}`;
     button.append(
       position.depth === 0
         ? element("span", "Research question", "node-type")
@@ -1920,7 +2093,7 @@ function renderActivity() {
         : "No worker assignments were recorded for this run.", "agent-activity-empty"));
     }
   } else {
-    setText(status, "Project ready for agent research");
+    setText(status, "Choose a section to read or discuss in chat.");
     setText(detail, latestAudit ? `Latest authoritative action: ${humanize(latestAudit.type)} · ${latestAudit.at}.` : "No run or audit activity has been recorded yet.");
     detail.hidden = true;
     setText(runState, "No run");
@@ -1928,8 +2101,7 @@ function renderActivity() {
     setText(controller, "Controller —");
     setText(progress, "0 tasks");
     setText(agentPreview, "No active assignments");
-    setText(telemetry, "No run telemetry recorded");
-    agentActivity.open = false;
+    setText(telemetry, "No research run is recorded for this project.");
     delete agentActivity.dataset.autoOpenedRun;
     agentList.replaceChildren(element("p", "No agents are currently assigned to this project.", "agent-activity-empty"));
   }
@@ -1962,21 +2134,30 @@ function renderMap() {
     proposalReview.appendChild(element("p", "Review or direct the change through the connected agent chat.", "telemetry-note"));
     content.appendChild(proposalReview);
   }
-  const coverage = node.coverage || {state: context.evidence.length ? "linked_context" : "unlinked"};
-  const focused = card(node.title || "Untitled research node", [], [humanize(node.node_type), coverageLabel(coverage.state)]);
+  const focused = card(node.title || "Untitled research node", [], [humanize(node.node_type), contextCoverageLabel(context)]);
   focused.dataset.recordKey = `node:${node.node_id}`;
+  focused.appendChild(element("p", nodeReviewText(node), "review-state"));
   if (node.body) appendRichTextParagraphs(focused, node.body, "focus-body");
+  focused.appendChild(element("p", contextScopeText(context), "scope-note"));
+  if (context.sourcesTruncated) focused.appendChild(element("p", "Some branches, passages, or sources are outside the loaded records. Counts below cover what is shown.", "scope-note"));
   const metrics = element("dl", null, "overview-metrics");
   [
-    ["Branches", Math.max(0, context.nodes.length - 1)],
-    ["Evidence", context.evidence.length],
-    ["Sources", context.sources.length],
+    ["Child branches", Math.max(0, context.nodes.length - 1)],
+    ["Passages shown", context.evidence.length],
+    ["Sources shown", context.sources.length],
   ].forEach(([label, value]) => {
     const metric = element("div");
     metric.append(element("dt", label), element("dd", value));
     metrics.appendChild(metric);
   });
   focused.appendChild(metrics);
+  const directPassages = context.evidence.filter((record) => context.directEvidenceIds.has(record.evidence_id));
+  if (directPassages.length) {
+    const stances = directPassages.map((record) => record.attestations?.at(-1)?.stance);
+    const count = (stance) => stances.filter((value) => value === stance).length;
+    const unassessed = stances.filter((value) => !value).length;
+    focused.appendChild(element("p", `Recorded stances on directly linked passages shown: ${count("supports")} supporting · ${count("qualifies")} qualifying · ${count("contradicts")} contradicting · ${count("context")} context${unassessed ? ` · ${unassessed} unassessed` : ""}.`, "reasoning-summary"));
+  }
   const relations = edgeView.items.filter((edge) => !edge.retired && (edge.source_node_id === node.node_id || edge.target_node_id === node.node_id));
   if (relations.length) {
     const relationList = element("div", null, "relationship-list");
@@ -1996,10 +2177,20 @@ function renderMap() {
     });
     focused.appendChild(reviewEvidence);
   } else {
-    focused.appendChild(element("p", "No exact-locator evidence is attached within this context yet.", "gap-note"));
+    focused.appendChild(element("p", context.evidenceTruncated
+      ? "No linked passages are available in the loaded records for this context."
+      : "No evidence passages are linked to this node or its child branches yet.", "gap-note"));
   }
   const openGaps = context.nodes.filter((item) => item.node_type === "gap" || item.coverage?.state === "open_gap");
-  if (openGaps.length) focused.appendChild(element("p", `${openGaps.length} open ${openGaps.length === 1 ? "gap needs" : "gaps need"} review.`, "gap-note"));
+  if (openGaps.length) {
+    focused.appendChild(element("p", `${openGaps.length} open ${openGaps.length === 1 ? "question" : "questions"} in this context.`, "gap-note"));
+    openGaps.forEach((gap) => {
+      const jump = element("button", gap.title || "Untitled open question", "evidence-jump");
+      jump.type = "button";
+      jump.addEventListener("click", () => selectDraftNode(gap.node_id));
+      focused.appendChild(jump);
+    });
+  }
   content.appendChild(focused);
 
   snapshot.views.conflicts.items
@@ -2016,27 +2207,28 @@ function sourceCard(source) {
       source.authors && source.authors.length ? source.authors.join(", ") : null,
       source.published ? `Published ${source.published}` : null,
     ],
-    [humanize(source.human_reading_state), humanize(source.source_type), `${humanize(quality.authority)} authority`]
+    [`Human reading: ${humanize(source.human_reading_state)}`, `Source type: ${humanize(source.source_type)}`]
   );
   item.dataset.recordKey = `source:${source.source_id}`;
   const sourceUrl = safeWebUrl(source.canonical_url);
   if (sourceUrl) {
     const link = element("a", source.title || "Open source", "evidence-source-link");
     link.href = sourceUrl;
-    link.setAttribute("aria-label", `Open source: ${source.title || "Untitled source"}`);
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.setAttribute("aria-label", `Open source: ${source.title || "Untitled source"} (new tab)`);
     item.querySelector("h3").replaceChildren(link);
   }
   const assessmentComplete = [quality.authority, quality.evidence_directness, quality.relevance].every((value) => value && value !== "unknown");
   item.appendChild(element(
     "p",
-    assessmentComplete
-      ? `${humanize(quality.authority)} authority · ${humanize(quality.evidence_directness)} directness · ${humanize(quality.relevance)} relevance`
-      : "Source assessment is incomplete.",
+    `Recorded source assessment${assessmentComplete ? "" : " (incomplete)"}: authority ${humanize(quality.authority)} · directness ${humanize(quality.evidence_directness)} · relevance ${humanize(quality.relevance)}.`,
     assessmentComplete ? "source-assessment" : "gap-note"
   ));
   item.appendChild(details("Source details", [
     quality.notes ? quality.notes : null,
-    `Method transparency: ${humanize(quality.methodology_transparency)} · publication: ${humanize(quality.publication_status)}`,
+    `Recorded method transparency: ${humanize(quality.methodology_transparency)} · publication assessment: ${humanize(quality.publication_status)}`,
+    source.import_method ? `Imported as: ${humanize(source.import_method)}` : null,
     `DOI: ${identifiers.doi || "not recorded"} · arXiv: ${identifiers.arxiv || "not recorded"}`,
   ]));
   return item;
@@ -2065,25 +2257,51 @@ function evidenceModeSwitch() {
 function renderEvidence() {
   const context = selectedResearchContext();
   const items = activeEvidenceMode === "sources" ? context.sources : context.evidence;
-  const scopedView = {items, total: items.length, truncated: false};
+  const truncated = activeEvidenceMode === "sources" ? context.sourcesTruncated : context.evidenceTruncated;
+  const knownTotal = activeEvidenceMode === "sources" ? context.sourceIds.size : context.evidenceIds.size;
+  const totalUnknown = activeEvidenceMode === "sources" ? context.evidenceTruncated : context.nodesTruncated;
+  const scopedView = {items, total: totalUnknown ? `at least ${knownTotal}` : knownTotal, truncated};
   viewHeader(scopedView, activeEvidenceMode === "sources" ? "Sources for selected context" : "Evidence for selected context");
+  content.appendChild(element("p", contextScopeText(context), "scope-note"));
+  if (truncated) content.appendChild(element("p", "This view is incomplete: some linked records or child branches are outside the loaded set.", "scope-note"));
   content.appendChild(evidenceModeSwitch());
   renderSearchableCollection({
     items,
     renderItem: activeEvidenceMode === "sources" ? sourceCard : (record) => {
       const latest = record.attestations && record.attestations[record.attestations.length - 1];
-      const item = card(record.source_title, [], [latest && humanize(latest.stance)]);
+      const source = context.sources.find((item) => item.source_id === record.source_id);
+      const item = card(record.source_title, [], [latest ? `Recorded stance: ${humanize(latest.stance)}` : "No stance recorded", source && `Source type: ${humanize(source.source_type)}`]);
       const sourceUrl = safeWebUrl(record.source_url);
       if (sourceUrl) {
         const link = element("a", record.source_title, "evidence-source-link");
         link.href = sourceUrl;
-        link.setAttribute("aria-label", `Open source: ${record.source_title}`);
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.setAttribute("aria-label", `Open source: ${record.source_title} (new tab)`);
         item.querySelector("h3").replaceChildren(link);
       }
       const quote = element("blockquote", record.excerpt, "evidence-quote");
       item.insertBefore(quote, item.querySelector(".metadata"));
-      if (latest && latest.paraphrase) item.appendChild(element("p", `Interpretation: ${latest.paraphrase}`));
+      if (latest && latest.paraphrase) item.appendChild(element("p", `Recorded interpretation: ${latest.paraphrase}`));
+      const owners = context.evidenceOwners.get(record.evidence_id) || [];
+      if (owners.length) {
+        const links = element("div", null, "reasoning-summary");
+        links.appendChild(element("p", "Linked to:"));
+        owners.forEach((owner) => {
+          const jump = element("button", owner.title || "Untitled research node", "evidence-jump");
+          jump.type = "button";
+          jump.dataset.ownerNodeId = owner.node_id;
+          jump.addEventListener("click", () => selectDraftNode(owner.node_id));
+          links.appendChild(jump);
+        });
+        item.appendChild(links);
+      }
       item.appendChild(details("Exact location", [locatorText(record.locator), `Source version ${record.source_version}`]));
+      if (latest) item.appendChild(details("Recorded assessment", [
+        `Assessed by: ${humanize(latest.actor_type)}${latest.actor_id ? ` (${latest.actor_id})` : ""}`,
+        `Method: ${latest.method || "not recorded"}`,
+        `Assessed at: ${latest.attested_at || "not recorded"}`,
+      ]));
       item.dataset.evidenceId = record.evidence_id;
       item.dataset.recordKey = `evidence:${record.evidence_id}`;
       item.tabIndex = -1;
@@ -2098,8 +2316,8 @@ function renderEvidence() {
     setExpanded: (value) => { evidenceExpanded[activeEvidenceMode] = value; },
     placeholder: activeEvidenceMode === "sources" ? "Search sources" : "Search evidence passages",
     emptyMessage: activeEvidenceMode === "sources"
-      ? "No sources support the selected context yet."
-      : "No exact-locator evidence supports the selected context yet.",
+      ? (truncated ? "No linked sources are available in the loaded records for this context." : "No sources are linked through evidence to this context yet.")
+      : (truncated ? "No linked passages are available in the loaded records for this context." : "No evidence passages are linked to this context yet."),
     forceVisible: (item) => item.dataset.evidenceId === focusedEvidenceId,
   });
 }
@@ -2273,6 +2491,7 @@ function viewSnapshot(view) {
   if (view === "evidence") return {
     selectedNodeId,
     mode: activeEvidenceMode,
+    nodes: snapshot.views.nodes,
     evidence: snapshot.views.evidence,
     sources: snapshot.views.sources,
   };
@@ -2336,65 +2555,98 @@ function enableLoadedMode() {
     setText(document.getElementById("mode-badge"), "AI draft · chat directed");
     setText(saveState, "Agent-recorded human direction enabled");
   } else {
-    setText(document.getElementById("mode-badge"), "AI draft · read only");
+    setText(document.getElementById("mode-badge"), "AI draft");
     setText(saveState, "Annotations disabled");
   }
 }
 
 function failInitialLoad(error) {
+  setConnectionStatus(error);
   if (initialLoadComplete) return;
   editor.readOnly = true;
   setText(document.getElementById("mode-badge"), "Unavailable");
   setText(saveState, error.message);
   setText(refreshState, "Initial load failed");
   previewContent = null;
-  outlinePreview.replaceChildren(element("p", "The authoritative outline could not be loaded. Editing remains unavailable.", "empty"));
+  outlinePreview.replaceChildren(element("p", "The draft could not be loaded. Use Retry above to reconnect.", "empty"));
   liveStatus.textContent = `Outline unavailable: ${error.message}`;
 }
 
 async function loadState({announce = false} = {}) {
-  if (initialLoadComplete) setText(refreshState, "Updating…");
-  const workspaceResponse = await fetch("/api/v1/workspace", {cache: "no-store"});
-  if (!workspaceResponse.ok) throw new Error("Research workspace could not be loaded");
-  const nextWorkspace = await workspaceResponse.json();
-  const firstWorkspaceLoad = workspace === null;
-  workspace = nextWorkspace;
-  if (!workspace.projects.length) {
-    renderEmptyWorkspaceMap();
+  const requestId = ++stateRequestId;
+  const requestedProjectId = activeProjectId;
+  try {
+    if (initialLoadComplete) setText(refreshState, "Updating…");
+    const workspaceResponse = await fetch("/api/v1/workspace", {cache: "no-store"});
+    if (!workspaceResponse.ok) throw new Error("Research workspace could not be loaded");
+    const nextWorkspace = await workspaceResponse.json();
+    if (requestId !== stateRequestId) return;
+    const firstWorkspaceLoad = workspace === null;
+    if (!nextWorkspace.projects.length) {
+      workspace = nextWorkspace;
+      snapshot = null;
+      setWorkspacePane("map");
+      renderEmptyWorkspaceMap();
+      enableLoadedMode();
+      setConnectionStatus();
+      if (announce) liveStatus.textContent = "Example research structure shown until the first project is published";
+      return;
+    }
+    document.body.classList.remove("empty-workspace");
+    mapCanvas.classList.remove("illustrative-map");
+    if (primaryMapSignature === "empty-workspace") primaryMapSignature = null;
+    const desiredProjectId = requestedProjectId || (firstWorkspaceLoad && initialContext.get("project"));
+    const nextProjectId = nextWorkspace.projects.some((item) => item.project_id === desiredProjectId && item.available)
+      ? desiredProjectId : nextWorkspace.default_project_id;
+    const readPath = (path) => `${path}?project=${encodeURIComponent(nextProjectId)}`;
+    const [outlineResponse, stateResponse] = await Promise.all([
+      fetch(readPath("/api/v1/outline"), {cache: "no-store"}),
+      fetch(readPath("/api/v1/state"), {cache: "no-store"}),
+    ]);
+    if (!outlineResponse.ok || !stateResponse.ok) throw new Error("Local project state could not be loaded");
+    const outline = await outlineResponse.json();
+    const nextSnapshot = await stateResponse.json();
+    if (requestId !== stateRequestId) return;
+    workspace = nextWorkspace;
+    activeProjectId = nextProjectId;
+    snapshot = nextSnapshot;
+    if (firstWorkspaceLoad) {
+      workspaceOverview = workspace.projects.length > 1;
+      const graph = activeGraph();
+      const requestedNode = initialContext.get("topic");
+      const node = graph.byId.get(requestedNode) || graph.nodes.find((item) => !item.parent_id && item.node_type === "question") || graph.nodes[0];
+      if (node) {
+        selectedNodeId = node.node_id;
+        if (!workspaceOverview || graph.byId.has(requestedNode)) {
+          focusRootId = workspaceOverview ? `workspace:${activeProjectId}:${node.node_id}` : node.node_id;
+          initializeBranchExpansion(graph);
+          revealNodePath(node.node_id);
+        }
+      }
+    }
+    updateOutline(outline);
+    setText(document.getElementById("project-name"), workspaceOverview ? `${workspace.workspace_name} · ${workspace.projects.length} questions` : snapshot.project.name);
+    const projectionState = snapshot.outline.dirty ? "The outline has edits that have not been reconciled with the research map." : "Select a section to follow its evidence. Discuss changes in chat.";
+    setText(document.getElementById("outline-meta"), projectionState);
+    const publication = snapshot.publication;
+    setText(refreshState, publication
+      ? `Live · revision ${publication.published_revision} · ${publication.produced_at}`
+      : "Read from authoritative files");
+    renderPrimaryMap();
+    renderActivity();
+    renderInspector();
+    renderReaderContents();
+    setConnectionStatus();
+    if (selectedNodeId) {
+      const selectedSection = outlinePreview.querySelector(`[data-outline-node-id="${selectedNodeId}"]`);
+      if (selectedSection) renderDraftProvenance(selectedSection, selectedNodeId);
+    }
     enableLoadedMode();
-    if (announce) liveStatus.textContent = "Example research structure shown until the first project is published";
-    return;
+    if (announce) liveStatus.textContent = "Research state refreshed";
+  } catch (error) {
+    if (requestId !== stateRequestId) return;
+    throw error;
   }
-  document.body.classList.remove("empty-workspace");
-  mapCanvas.classList.remove("illustrative-map");
-  if (primaryMapSignature === "empty-workspace") primaryMapSignature = null;
-  if (!activeProjectId || !workspace.projects.some((item) => item.project_id === activeProjectId)) activeProjectId = workspace.default_project_id;
-  if (firstWorkspaceLoad && workspace.projects.length > 1) workspaceOverview = true;
-  const [outlineResponse, stateResponse] = await Promise.all([
-    fetch(projectApi("/api/v1/outline"), {cache: "no-store"}),
-    fetch(projectApi("/api/v1/state"), {cache: "no-store"}),
-  ]);
-  if (!outlineResponse.ok || !stateResponse.ok) throw new Error("Local project state could not be loaded");
-  const outline = await outlineResponse.json();
-  const nextSnapshot = await stateResponse.json();
-  snapshot = nextSnapshot;
-  updateOutline(outline);
-  setText(document.getElementById("project-name"), workspaceOverview ? `${workspace.workspace_name} · ${workspace.projects.length} questions` : snapshot.project.name);
-  const projectionState = snapshot.outline.dirty ? "Reconciliation required" : "Projection reconciled";
-  setText(document.getElementById("outline-meta"), projectionState);
-  const publication = snapshot.publication;
-  setText(refreshState, publication
-    ? `Live · revision ${publication.published_revision} · ${publication.produced_at}`
-    : "Read from authoritative files");
-  renderPrimaryMap();
-  renderActivity();
-  renderInspector();
-  if (selectedNodeId) {
-    const selectedSection = outlinePreview.querySelector(`[data-outline-node-id="${selectedNodeId}"]`);
-    if (selectedSection) renderDraftProvenance(selectedSection, selectedNodeId);
-  }
-  enableLoadedMode();
-  if (announce) liveStatus.textContent = "Research state refreshed";
 }
 
 async function pollCompletionSignal() {
@@ -2447,6 +2699,7 @@ function activateTab(tab, focus = false) {
 }
 
 function activateContextTab(view, {focus = false} = {}) {
+  if (document.body.dataset.workspacePane !== "split") setWorkspacePane("context");
   activeContextView = view;
   contextTabs.forEach((tab) => {
     const selected = tab.dataset.contextView === view;
@@ -2512,16 +2765,18 @@ researchSearch.addEventListener("keydown", (event) => {
     researchSearch.value = "";
     applyMapFilters({announce: true});
     mapFind.open = false;
+    mapFind.querySelector("summary").focus();
     return;
   }
   if (event.key !== "Enter") return;
   const first = applyMapFilters({announce: true})[0];
-  if (first) selectNode(first.dataset.nodeId);
+  if (first) openSearchResult(first);
 });
 document.addEventListener("keydown", (event) => {
   if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
   if (event.target.matches("input, textarea, select")) return;
   event.preventDefault();
+  if (document.body.dataset.workspacePane !== "split") setWorkspacePane("map");
   mapFind.open = true;
   researchSearch.focus();
 });
@@ -2562,7 +2817,9 @@ splitDivider.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("resize", () => {
+  if (window.innerWidth <= 600 && document.body.dataset.workspacePane === "split") setWorkspacePane("context");
   setSplitPosition(splitRatio);
+  if (snapshot && !focusRootId && mapCanvas.clientWidth) fitGraph();
 });
 
 mapZoomOut.addEventListener("click", () => {
@@ -2679,6 +2936,36 @@ mapCanvas.addEventListener("pointercancel", () => {
   dragState = null;
   mapCanvas.classList.remove("panning");
 });
+document.querySelectorAll("button[data-workspace-pane]").forEach((button) => {
+  button.addEventListener("click", () => setWorkspacePane(button.dataset.workspacePane));
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  for (const menu of [mapFind, document.getElementById("reader-contents")]) {
+    if (menu.open) {
+      menu.open = false;
+      menu.querySelector("summary").focus();
+      event.preventDefault();
+    }
+  }
+});
+document.addEventListener("pointerdown", (event) => {
+  for (const menu of [mapFind, document.getElementById("reader-contents")]) {
+    if (menu.open && !menu.contains(event.target)) menu.open = false;
+  }
+});
+document.getElementById("retry-load").addEventListener("click", async () => {
+  const button = document.getElementById("retry-load");
+  button.disabled = true;
+  try {
+    await loadState({announce: true});
+  } catch (error) {
+    failInitialLoad(error);
+  } finally {
+    button.disabled = false;
+  }
+});
+setWorkspacePane(window.innerWidth > 1000 ? "split" : "context");
 activateContextTab("draft");
 
 loadState({announce: true})
@@ -2686,6 +2973,7 @@ loadState({announce: true})
   .catch(failInitialLoad);
 window.setInterval(() => pollCompletionSignal().catch(() => {}), 1000);
 window.setInterval(() => loadState().catch((error) => {
+  setConnectionStatus(error);
   if (!initialLoadComplete) failInitialLoad(error);
   else {
     const publication = snapshot && snapshot.publication;

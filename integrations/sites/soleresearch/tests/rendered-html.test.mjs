@@ -20,7 +20,7 @@ test("packages the full read-only dashboard instead of the starter", async () =>
   assert.match(app, /Research question/);
   assert.match(app, /Research branch/);
   assert.match(app, /Evidence/);
-  assert.match(app, /if \(!workspace\.projects\.length\)/);
+  assert.match(app, /if \(!nextWorkspace\.projects\.length\)/);
   assert.match(css, /body\.empty-workspace/);
   assert.match(layout, /SoleResearchLayout/);
   assert.match(css, /\.split-workspace/);

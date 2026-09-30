@@ -337,7 +337,8 @@ def test_ui_static_contract_has_accessible_tabs_and_transparent_fields() -> None
     assert len(parsed.tabs) == len(parsed.panels) == 7
     assert {item["aria-controls"] for item in parsed.tabs} == {item["id"] for item in parsed.panels}
     assert all(item.get("aria-selected") in {"true", "false"} for item in parsed.tabs)
-    assert len(parsed.statuses) == 1 and parsed.statuses[0]["aria-live"] == "polite"
+    assert {item["id"] for item in parsed.statuses} == {"connection-status", "live-status"}
+    assert all(item["aria-live"] == "polite" for item in parsed.statuses)
     for required in ("ArrowRight", "ArrowLeft", "Home", "End", "human_reading_state", "methodology_transparency", "start_char", "end_char", "source_title", "pending_decisions", "Run event history", "chronological audit events", "focusEvidence", "evidence-jump", "scrollIntoView"):
         assert required in javascript
     assert "source.reading_state" not in javascript
@@ -367,7 +368,8 @@ def test_ui_redesign_has_semantic_hierarchy_and_local_design_system() -> None:
 
     parsed = Structure()
     parsed.feed(html)
-    assert any(tag == "a" and attrs.get("class") == "skip-link" and attrs.get("href") == "#map-canvas" for tag, attrs in parsed.tags)
+    assert any(tag == "a" and attrs.get("class") == "skip-link" and attrs.get("href") == "#workbench" for tag, attrs in parsed.tags)
+    assert any(tag == "main" and attrs.get("id") == "workbench" and attrs.get("tabindex") == "-1" for tag, attrs in parsed.tags)
     assert any(tag == "main" and attrs.get("class") == "workbench" for tag, attrs in parsed.tags)
     assert not any(tag == "footer" for tag, _attrs in parsed.tags)
     assert not any("app-header" in (attrs.get("class") or "").split() or "app-footer" in (attrs.get("class") or "").split() for _tag, attrs in parsed.tags)
@@ -451,8 +453,8 @@ def test_ui_redesign_has_semantic_hierarchy_and_local_design_system() -> None:
     assert "body { max-width: 100%; overflow-x: hidden; }" in css
     assert ".map-navigation { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; }" in css
     assert ".map-toolbar-actions { width: 100%; min-width: 0; flex-wrap: wrap; justify-content: flex-start; }" in css
-    assert ".context-heading { display: flex; align-items: flex-start; flex-direction: column; }" in css
-    assert ".agent-activity-preview { overflow-wrap: anywhere;" in css
+    assert ".context-heading" in css and ".reader-contents-list" in css
+    assert 'data-workspace-pane="split"' in html and 'data-workspace-pane="context"' in html
     assert "grid-template-columns: minmax(0, var(--split-position)) 12px minmax(0, 1fr)" in css
     assert ".split-divider" in css and "cursor: col-resize" in css
     assert ".inspector[hidden] { display: none; }" in css and "position: static" in css
@@ -468,8 +470,8 @@ def test_ui_redesign_has_semantic_hierarchy_and_local_design_system() -> None:
     assert '.outline-node-section[data-synthesis-detail="true"]' in css
     assert ".draft-section-kicker" in css and ".outline-question-section" in css
     assert ".outline-preview > h2:first-child" in css
-    assert "padding-inline: clamp(var(--space-3), 2vw, 28px)" in css
-    assert "width: min(100%, 92ch)" in css
+    assert ".outline-preview" in css and "--font-reading" in css
+    assert "820px" in css
     assert ".map-node-root" in css and ".map-edge-contains" in css and "border-radius: 50%" in css
     assert ".map-pane" in css and "padding: 0" in css
     assert ".map-find" in css and "position: absolute" in css
@@ -589,10 +591,10 @@ def test_ui_redesign_uses_progressive_disclosure_and_stable_refresh() -> None:
         'destination.dataset.synthesisDetail === "true"',
         'section.dataset.terminalSynthesis = mappedNode && (mappedNode.tags || []).includes("terminal-synthesis") ? "true" : "false"',
         'section.dataset.synthesisDetail = synthesisDetail ? "true" : "false"',
-        'organized in ${hiddenBranchCount} expandable ${hiddenBranchCount === 1 ? "branch" : "branches"}',
+        'contextScopeText(context)',
         'element("strong", `${displayKind} ${destination.dataset.claimNumber} — ${title}.`)',
-        'labeledParagraph("Evidence"',
-        'nodeType === "gap" || missingEvidence ? "Limitation"',
+        'gap: "Limitation", interpretation: "Interpretation", conclusion: "Conclusion", evidence: "Evidence"',
+        'const markers = Array.from(text.matchAll',
         'element("p", "Research question", "draft-section-kicker")',
         "outlinePreview.replaceChildren(fragment)",
         "soleresearch:anchor\\s+root",
@@ -600,8 +602,8 @@ def test_ui_redesign_uses_progressive_disclosure_and_stable_refresh() -> None:
         "humanize(edge.edge_type)",
         'tab.scrollIntoView({block: "nearest", inline: "nearest"})',
             "function renderPrimaryMap({preserveCamera = false} = {})",
-        'element("button", `Root {${rootCount}}`, "map-crumb")',
-        'element("button", `Branch {${project.directory}}`, "map-crumb")',
+        'rootCount > 1 ? `All ${rootCount} questions` : "Full map"',
+        'element("button", project.name, "map-crumb")',
             "function renderWorkspaceMap({preserveCamera = false} = {})",
         'mapCanvas.classList.add("workspace-overview")',
         'mapCanvas.classList.remove("workspace-overview")',
@@ -619,15 +621,15 @@ def test_ui_redesign_uses_progressive_disclosure_and_stable_refresh() -> None:
         'fetch("/api/v1/workspace"',
         'crumb.setAttribute("aria-label", `${role}: ${node.title}`)',
         'crumb.title = node.title',
-        '? "Branch"',
-        ': `Sub-branch ${index}`',
-        '? "Leaf"',
+        '? "Question"',
+        ': "Topic"',
+        '? "Section"',
             "function renderActivity()",
             'activityRail.classList.toggle("has-run", Boolean(run))',
             'activityRail.classList.toggle("is-idle", !run)',
             'agentActivity.dataset.autoOpenedRun !== run.run_id',
             'setText(agentPreview, "No active assignments")',
-            'setText(status, "Project ready for agent research")',
+            'setText(status, "Choose a section to read or discuss in chat.")',
         "function selectNode(nodeId",
         "Individual tool calls are not captured",
         "function selectedResearchContext()",
@@ -692,7 +694,7 @@ def test_ui_redesign_uses_progressive_disclosure_and_stable_refresh() -> None:
         "section.dataset.outlineDepth = String(Math.min(4, Math.max(0, mappedDepth)))",
         "let pendingHeading = null",
         "flushPendingHeading(section)",
-        'target.scrollIntoView({behavior: "smooth", block: "start"})',
+        'window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"',
         'activeContextView === "draft"',
         'mapCanvas.addEventListener("pointerdown"',
         'mapCanvas.addEventListener("keydown"',
@@ -799,8 +801,8 @@ def test_ui_primary_map_uses_hierarchical_claims_and_depth_scaled_focus() -> Non
     assert "geometry.layoutForest" in javascript
     assert "geometry.validateCircles" in javascript
     assert "geometry.boundsForCircles" in javascript
-    assert 'fetch(projectApi("/api/v1/outline")' in javascript
-    assert 'fetch(projectApi("/api/v1/state")' in javascript
+    assert 'fetch(readPath("/api/v1/outline")' in javascript
+    assert 'fetch(readPath("/api/v1/state")' in javascript
     assert 'method: "PUT"' not in javascript
     assert 'method: "POST"' not in javascript and "X-CSRF-Token" not in javascript and "If-Match" not in javascript
     assert "window.setInterval" in javascript and "5000" in javascript
